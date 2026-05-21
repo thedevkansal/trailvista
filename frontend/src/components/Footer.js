@@ -17,11 +17,8 @@ const Footer = () => {
               />
               <span className="text-xl font-bold hero-text tv-text-primary text-white">TRAILVI<span className="text-[#38BDF8]">STA</span></span>
             </div>
-            <p className="text-[#94A3B8] text-sm leading-relaxed mb-4">
-              India's most trusted Himalayan expedition platform. We design transformative trekking and high-altitude experiences with a relentless focus on safety, transparency, and authentic mountain culture.
-            </p>
             <p className="text-[#94A3B8] text-sm leading-relaxed mb-5">
-              25,000+ adventurers · 120+ fixed departures every year · 50+ trails across Uttarakhand, Himachal, Kashmir, Ladakh, Sikkim & Nepal.
+              India's most trusted Himalayan expedition platform. We design transformative trekking and high-altitude experiences with a relentless focus on safety, transparency, and authentic mountain culture.
             </p>
             <div className="flex space-x-3">
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-[#38BDF8]/10 hover:border-[#38BDF8] flex items-center justify-center text-[#94A3B8] hover:text-[#38BDF8] transition-all" data-testid="footer-facebook-link">

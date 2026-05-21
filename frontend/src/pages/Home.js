@@ -10,6 +10,7 @@ import SearchBar from '../components/SearchBar';
 import TrekCard from '../components/TrekCard';
 import GalleryMarquee from '../components/GalleryMarquee';
 import ReviewMarquee from '../components/ReviewMarquee';
+import AffiliationsStrip from '../components/AffiliationsStrip';
 import { treks, reviews, blogPosts, categories } from '../data/treksData';
 
 const Home = () => {
@@ -403,6 +404,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Affiliations + Corporate Partners */}
+      <AffiliationsStrip />
 
       {/* Final CTA */}
       <section className="tv-cinematic relative py-32 overflow-hidden">
