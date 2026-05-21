@@ -76,7 +76,7 @@ const TrekDetail = () => {
   return (
     <div className="min-h-screen pt-32 pb-24">
       {/* Hero Section */}
-      <div className="relative h-[60vh] mb-12">
+      <div className="tv-cinematic relative h-[60vh] mb-12">
         <img 
           src={trek.image} 
           alt={trek.name}

@@ -30,7 +30,7 @@ const CinematicHero = ({
   return (
     <section
       ref={ref}
-      className="relative w-full h-screen min-h-[760px] overflow-hidden bg-[#020617]"
+      className="tv-hero-zone relative w-full h-screen min-h-[760px] overflow-hidden bg-[#020617]"
       data-testid="cinematic-hero"
     >
       {/* Layer 1: Background image with parallax */}
@@ -80,12 +80,12 @@ const CinematicHero = ({
             {word2}
           </motion.span>
 
-          {/* Bottom-left to right: Glacier accent on first letter */}
+          {/* Bottom-right: LIMITS - Glacier accent on first letter (moved from left to avoid CTA overlap) */}
           <motion.span
             initial={{ opacity: 0, y: 80 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text absolute bottom-[14%] left-[12%] sm:left-[14%] text-white font-black uppercase leading-[0.82] text-[20vw] sm:text-[16vw] lg:text-[14vw] select-none"
+            className="hero-text absolute bottom-[10%] right-[3%] sm:right-[5%] text-white font-black uppercase leading-[0.82] text-[20vw] sm:text-[16vw] lg:text-[13vw] select-none"
             style={{ textShadow: '0 8px 60px rgba(2,6,23,0.7)' }}
           >
             <span className="text-[#38BDF8]">L</span>{word3.slice(1)}

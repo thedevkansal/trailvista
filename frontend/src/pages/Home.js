@@ -399,7 +399,7 @@ const Home = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="relative py-32 overflow-hidden">
+      <section className="tv-cinematic relative py-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1777461788029-54db5f3971c2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwzfHxtb3VudGFpbiUyMHN1bW1pdCUyMHZpZXclMjBsYW5kc2NhcGV8ZW58MHx8fHwxNzc5MzkzMzc0fDA&ixlib=rb-4.1.0&q=85"

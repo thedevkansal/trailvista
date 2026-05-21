@@ -5,24 +5,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================================================
+   THEME TOKENS
+   Dark = cinematic navy. Light = sky blue palette.
+   ========================================================= */
 :root {
     --tv-bg: #020617;
     --tv-surface: #071827;
     --tv-text: #F8FAFC;
     --tv-text-secondary: #94A3B8;
-    --tv-border: rgba(248, 250, 252, 0.1);
-    --tv-glass: rgba(7, 24, 39, 0.8);
-    --tv-glass-light: rgba(2, 6, 23, 0.6);
 }
 
 .light-mode {
-    --tv-bg: #F8FAFC;
-    --tv-surface: #FFFFFF;
-    --tv-text: #020617;
-    --tv-text-secondary: #475569;
-    --tv-border: rgba(2, 6, 23, 0.1);
-    --tv-glass: rgba(255, 255, 255, 0.8);
-    --tv-glass-light: rgba(248, 250, 252, 0.7);
+    --tv-bg: #E0F2FE;
+    --tv-surface: #F0F9FF;
+    --tv-text: #0C4A6E;
+    --tv-text-secondary: #0369A1;
 }
 
 body {
@@ -62,15 +60,8 @@ code {
         --ring: 199 89% 48%;
         --radius: 0.5rem;
     }
-}
-
-@layer base {
-    * {
-        @apply border-border;
-    }
-    body {
-        @apply bg-background text-foreground;
-    }
+    * { @apply border-border; }
+    body { @apply bg-background text-foreground; }
 }
 
 .hero-text {
@@ -78,118 +69,129 @@ code {
     letter-spacing: -0.02em;
 }
 
-/* Light mode color overrides for app surfaces */
-.light-mode body {
-    background-color: #F8FAFC;
-    color: #020617;
-}
-
-.light-mode .tv-app {
-    background-color: #F8FAFC !important;
-}
-
-.light-mode .tv-surface {
-    background-color: #FFFFFF !important;
-    border-color: rgba(2, 6, 23, 0.08) !important;
-}
-
-.light-mode .tv-surface-alt {
-    background-color: #F1F5F9 !important;
-}
-
-.light-mode .tv-text-primary {
-    color: #020617 !important;
-}
-
-.light-mode .tv-text-secondary {
-    color: #475569 !important;
-}
-
-.light-mode .tv-input {
-    background-color: #F1F5F9 !important;
-    border-color: rgba(2, 6, 23, 0.1) !important;
-    color: #020617 !important;
-}
-
-.light-mode .tv-navbar {
-    background-color: rgba(255, 255, 255, 0.85) !important;
-    border-color: rgba(2, 6, 23, 0.08) !important;
-}
-
-.light-mode .tv-navbar-text {
-    color: #020617 !important;
-}
-
-.light-mode .tv-divider {
-    border-color: rgba(2, 6, 23, 0.08) !important;
-}
-
-.light-mode .tv-footer {
-    background-color: #F1F5F9 !important;
-}
-
-/* Hero text outline / stroke effect */
+/* Text outline (for hero BEYOND word) */
 .hero-text-outline {
-    -webkit-text-stroke: 2px rgba(255, 255, 255, 0.9);
+    -webkit-text-stroke: 2px rgba(255, 255, 255, 0.95);
     color: transparent;
 }
 
-.light-mode .hero-text-outline {
-    -webkit-text-stroke: 2px rgba(2, 6, 23, 0.9);
+/* =========================================================
+   LIGHT MODE - GLOBAL OVERRIDES (sky-blue palette)
+   ========================================================= */
+
+/* App / body bg */
+.light-mode body,
+.light-mode .tv-app {
+    background-color: #E0F2FE !important;
+    color: #0C4A6E !important;
 }
 
-/* Scroll smooth */
-html {
-    scroll-behavior: smooth;
+/* --- Step 1: Blanket overrides (low specificity) --- */
+.light-mode .bg-\[\#020617\] { background-color: #E0F2FE !important; }
+.light-mode .bg-\[\#071827\] { background-color: #F0F9FF !important; }
+.light-mode .bg-\[\#071827\]\/50 { background-color: rgba(186, 230, 253, 0.4) !important; }
+.light-mode .bg-\[\#071827\]\/80 { background-color: rgba(240, 249, 255, 0.85) !important; }
+.light-mode .bg-\[\#071827\]\/95 { background-color: rgba(240, 249, 255, 0.97) !important; }
+.light-mode .bg-\[\#020617\]\/80 { background-color: rgba(240, 249, 255, 0.85) !important; }
+.light-mode .bg-\[\#020617\]\/70 { background-color: rgba(240, 249, 255, 0.7) !important; }
+
+.light-mode .text-white { color: #0C4A6E !important; }
+.light-mode .text-\[\#94A3B8\] { color: #0369A1 !important; }
+.light-mode .text-\[\#38BDF8\] { color: #0284C7 !important; }
+
+.light-mode .border-white\/10 { border-color: rgba(12, 74, 110, 0.15) !important; }
+.light-mode .border-white\/20 { border-color: rgba(12, 74, 110, 0.22) !important; }
+.light-mode .border-white\/30 { border-color: rgba(12, 74, 110, 0.3) !important; }
+
+/* --- Step 2: Higher-specificity overrides to PRESERVE cinematic hero --- */
+.light-mode .tv-hero-zone,
+.light-mode .tv-hero-zone .bg-\[\#020617\] {
+    background-color: #020617 !important;
+}
+.light-mode .tv-hero-zone .text-white { color: #FFFFFF !important; }
+.light-mode .tv-hero-zone .text-\[\#94A3B8\] { color: #94A3B8 !important; }
+.light-mode .tv-hero-zone .text-\[\#38BDF8\] { color: #38BDF8 !important; }
+.light-mode .tv-hero-zone .text-\[\#BAE6FD\] { color: #BAE6FD !important; }
+.light-mode .tv-hero-zone .border-white\/10 { border-color: rgba(255, 255, 255, 0.1) !important; }
+.light-mode .tv-hero-zone .border-white\/20 { border-color: rgba(255, 255, 255, 0.2) !important; }
+.light-mode .tv-hero-zone .border-white\/30 { border-color: rgba(255, 255, 255, 0.3) !important; }
+.light-mode .tv-hero-zone .hero-text-outline {
+    -webkit-text-stroke: 2px rgba(255, 255, 255, 0.95) !important;
+    color: transparent !important;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+/* Other dark cinematic zones (CTA section, dark trek-detail hero, etc.) */
+.light-mode .tv-cinematic .text-white { color: #FFFFFF !important; }
+.light-mode .tv-cinematic .text-\[\#94A3B8\] { color: #94A3B8 !important; }
+.light-mode .tv-cinematic .text-\[\#38BDF8\] { color: #38BDF8 !important; }
+
+/* Input fields - light/clean */
+.light-mode input,
+.light-mode select,
+.light-mode textarea {
+    background-color: #FFFFFF !important;
+    border-color: rgba(12, 74, 110, 0.2) !important;
+    color: #0C4A6E !important;
+}
+.light-mode input::placeholder,
+.light-mode textarea::placeholder { color: #64748B !important; }
+
+/* Hero inputs - keep dark glass look */
+.light-mode .tv-hero-zone input,
+.light-mode .tv-hero-zone select,
+.light-mode .tv-hero-zone textarea {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #FFFFFF !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-::-webkit-scrollbar-track {
-    background: var(--tv-bg);
+/* Footer - sky-tinted (NOT pure white) */
+.light-mode footer {
+    background-color: #BAE6FD !important;
+    border-top-color: rgba(12, 74, 110, 0.15) !important;
+}
+.light-mode footer .text-white,
+.light-mode footer h3,
+.light-mode footer h4,
+.light-mode footer p,
+.light-mode footer span,
+.light-mode footer a,
+.light-mode footer li { color: #0C4A6E !important; }
+.light-mode footer .text-\[\#94A3B8\] { color: #075985 !important; }
+.light-mode footer .text-\[\#38BDF8\] { color: #0284C7 !important; }
+.light-mode footer input {
+    background-color: #FFFFFF !important;
+    color: #0C4A6E !important;
+    border-color: rgba(12, 74, 110, 0.2) !important;
 }
 
-::-webkit-scrollbar-thumb {
-    background: #38BDF8;
-    border-radius: 4px;
+/* Glass dropdown panels in light mode */
+.light-mode nav .bg-\[\#071827\]\/95 {
+    background-color: rgba(240, 249, 255, 0.97) !important;
+    color: #0C4A6E !important;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #BAE6FD;
-}
+/* Scroll */
+html { scroll-behavior: smooth; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--tv-bg); }
+::-webkit-scrollbar-thumb { background: #38BDF8; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #BAE6FD; }
 
 @layer base {
-    [data-debug-wrapper="true"] {
-        display: contents !important;
-    }
-
+    [data-debug-wrapper="true"] { display: contents !important; }
     [data-debug-wrapper="true"] > * {
-        margin-left: inherit;
-        margin-right: inherit;
-        margin-top: inherit;
-        margin-bottom: inherit;
-        padding-left: inherit;
-        padding-right: inherit;
-        padding-top: inherit;
-        padding-bottom: inherit;
-        column-gap: inherit;
-        row-gap: inherit;
-        gap: inherit;
-        border-left-width: inherit;
-        border-right-width: inherit;
-        border-top-width: inherit;
-        border-bottom-width: inherit;
-        border-left-style: inherit;
-        border-right-style: inherit;
-        border-top-style: inherit;
-        border-bottom-style: inherit;
-        border-left-color: inherit;
-        border-right-color: inherit;
-        border-top-color: inherit;
-        border-bottom-color: inherit;
+        margin-left: inherit; margin-right: inherit;
+        margin-top: inherit; margin-bottom: inherit;
+        padding-left: inherit; padding-right: inherit;
+        padding-top: inherit; padding-bottom: inherit;
+        column-gap: inherit; row-gap: inherit; gap: inherit;
+        border-left-width: inherit; border-right-width: inherit;
+        border-top-width: inherit; border-bottom-width: inherit;
+        border-left-style: inherit; border-right-style: inherit;
+        border-top-style: inherit; border-bottom-style: inherit;
+        border-left-color: inherit; border-right-color: inherit;
+        border-top-color: inherit; border-bottom-color: inherit;
     }
 }
