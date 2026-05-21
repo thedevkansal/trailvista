@@ -1,0 +1,137 @@
+{
+  "project_name": "TrailVista Expeditions",
+  "theme_archetype": "Archetype 5: Jewel & Luxury (Adapted for Dark Cinematic Expedition)",
+  "vibe": "Snow mountains, night sky, glaciers, altitude, premium adventure, awe-inspiring, trustworthy",
+  "colors": {
+    "background": {
+      "default": "#020617",
+      "surface": "#071827",
+      "surface_glass": "rgba(7, 24, 39, 0.6)"
+    },
+    "text": {
+      "primary": "#F8FAFC",
+      "secondary": "#94A3B8",
+      "accent": "#38BDF8",
+      "inverse": "#020617"
+    },
+    "brand": {
+      "primary": "#38BDF8",
+      "secondary": "#BAE6FD",
+      "accent_cta": "#F97316"
+    },
+    "border": {
+      "default": "rgba(248, 250, 252, 0.1)",
+      "hover": "rgba(56, 189, 248, 0.3)"
+    }
+  },
+  "typography": {
+    "font_families": {
+      "headings": "'Clash Display', sans-serif",
+      "body": "'Manrope', sans-serif"
+    },
+    "rules": {
+      "headings": "uppercase, tracking-tight, font-black for heroes (text-5xl to text-7xl), font-bold for sections.",
+      "body": "leading-relaxed, text-base to text-lg, high legibility.",
+      "accents": "uppercase, tracking-[0.2em], text-xs to text-sm, font-bold for overlines and labels."
+    }
+  },
+  "layout_and_spacing": {
+    "philosophy": "Generous spacing. High visual impact. The 'Bento' grid for features and gallery sections.",
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "section_padding": "py-24 sm:py-32",
+    "grid_modes": {
+      "marketing": "The 'Tetris' Grid (asymmetry, visual tension, gap-8 to gap-12)",
+      "data": "The 'Control Room' Grid (density for trek itineraries, gap-4 to gap-6)"
+    },
+    "surfaces": {
+      "navbar": "Glassmorphism: backdrop-blur-xl bg-[#020617]/60 border-b border-white/10 rounded-full mx-auto mt-4 w-[95%] max-w-7xl sticky top-4 z-50",
+      "cards": "Solid background #071827 with a delicate 1px border (border-white/10). No soft shadows, instead rely on border and slight hover lift (-translate-y-1).",
+      "hero_overlay": "Cinematic gradient: bg-gradient-to-t from-[#020617] via-[#020617]/50 to-transparent."
+    }
+  },
+  "motion_and_interactions": {
+    "hover_states": "Cards lift (-translate-y-2) with subtle glow. Text color shifts to Glacier Blue. Buttons scale active (scale-95).",
+    "scroll_animations": "Smooth scroll enabled. Staggered fade-up entrances for bento grids.",
+    "marquee": "Slow, smooth, organic drift. Avoid fast ticking. Professional and subtle intensity."
+  },
+  "component_instructions": {
+    "buttons": "Primary CTA uses Accent Orange (#F97316) for high contrast and conversion. Secondary uses Glacier Blue or transparent with 1px border. MUST have data-testid.",
+    "navbar": "Floating rounded container, dropdowns for Categories/Destinations. Logo prominently displayed.",
+    "hero": "Full-screen (min-h-screen). Massive typographic stack layered over image. 1-2 words highlighted in Glacier Blue or Accent Orange.",
+    "marquee_gallery": "Horizontal scrolling gallery of expedition moments. Subtle, no gaps or minimal gaps.",
+    "forms": "Use Shadcn inputs and forms, styled with #071827 backgrounds, #94A3B8 placeholders, and focus rings in Glacier Blue. Success modal upon submission.",
+    "testing": "All interactive elements MUST include data-testid attributes."
+  },
+  "image_urls": {
+    "hero": [
+      {
+        "url": "https://images.pexels.com/photos/16290132/pexels-photo-16290132.jpeg",
+        "description": "Machhapuchhare starry night, perfect for main landing hero",
+        "category": "hero"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1751077449176-8755460305bd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHw0fHx0cmVra2VyJTIwc2lsaG91ZXR0ZSUyMG1vdW50YWlufGVufDB8fHx8MTc3OTM5MzIzOXww&ixlib=rb-4.1.0&q=85",
+        "description": "Trekker looking at distant mountain, good for expeditions hero",
+        "category": "hero"
+      }
+    ],
+    "treks_and_gallery": [
+      {
+        "url": "https://images.pexels.com/photos/12121705/pexels-photo-12121705.jpeg",
+        "description": "Hikers snow landscape",
+        "category": "gallery"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1767763713139-2e5e6aadd428?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwzfHx0cmVra2luZyUyMGdyb3VwJTIwc25vd3xlbnwwfHx8fDE3NzkzOTMyMzl8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Hikers ascending snowy mountain",
+        "category": "gallery"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1698763953037-02519fb98565?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwzfHx0cmVra2VyJTIwc2lsaG91ZXR0ZSUyMG1vdW50YWlufGVufDB8fHx8MTc3OTM5MzIzOXww&ixlib=rb-4.1.0&q=85",
+        "description": "Person on top of mountain",
+        "category": "gallery"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1773081834522-7c375c2d4a21?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwyfHxoaW1hbGF5YXMlMjBtb3VudGFpbiUyMHN0YXJyeSUyMG5pZ2h0fGVufDB8fHx8MTc3OTM5MzIzOXww&ixlib=rb-4.1.0&q=85",
+        "description": "Snowcapped under starry night",
+        "category": "gallery"
+      }
+    ],
+    "portraits_reviews": [
+      {
+        "url": "https://images.pexels.com/photos/5779251/pexels-photo-5779251.jpeg",
+        "description": "Man in winter gear",
+        "category": "portrait"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1486036413660-59d02a64e549?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MTN8MHwxfHNlYXJjaHwyfHxjbGltYmVyJTIwcG9ydHJhaXQlMjBtb3VudGFpbnxlbnwwfHx8fDE3NzkzOTMyMzl8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Man in gray hoodie",
+        "category": "portrait"
+      }
+    ],
+    "brand_assets": [
+      {
+        "url": "https://static.prod-images.emergentagent.com/jobs/221755c1-0324-4690-aa42-bfdb3646c22b/images/07979eb0085519e24d5c27211b05e6a615ac4003d035ff3cc438e9f0a527dce3.png",
+        "description": "TrailVista premium minimalist logo",
+        "category": "logo"
+      },
+      {
+        "url": "https://static.prod-images.emergentagent.com/jobs/221755c1-0324-4690-aa42-bfdb3646c22b/images/ea76ae4d926e21f13aeb16ca362ee27ddaf05e8030ae016dd8fd71376b3befed.png",
+        "description": "Abstract topographic map texture for section backgrounds",
+        "category": "texture"
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Strictly adhere to the dark theme colors and avoid any heavy green theme.",
+    "Build the 13 required pages (Home, All Treks/Packages, Trek Detail, Expeditions, Upcoming Departures, Destinations, Categories, About, Safety, Blog, Gallery, Reviews, Contact) as pure frontend pages.",
+    "Ensure the hero section uses min-h-screen with large, uppercase typography (font-family: 'Clash Display') overlapping the background image.",
+    "Use Lucide React icons where necessary.",
+    "Implement glassmorphism on the navbar exactly as specified in the surfaces layout instructions.",
+    "Use Framer Motion for subtle hover animations on trek cards and smooth entrances.",
+    "Implement the animated horizontal gallery/review marquees using react-fast-marquee or CSS animations with low intensity.",
+    "Do not use placeholders for images. Always use the URLs provided in the image_urls section.",
+    "Show a success modal specifically when form submissions occur (Enquiry Forms).",
+    "All crucial elements must include the 'data-testid' attribute (e.g., data-testid='booking-submit-btn')."
+  ]
+}
