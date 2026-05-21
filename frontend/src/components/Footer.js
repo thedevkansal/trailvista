@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
-          <div>
+          <div className="lg:col-span-1">
             <div className="flex items-center space-x-3 mb-4">
               <img 
                 src="https://static.prod-images.emergentagent.com/jobs/221755c1-0324-4690-aa42-bfdb3646c22b/images/07979eb0085519e24d5c27211b05e6a615ac4003d035ff3cc438e9f0a527dce3.png" 
@@ -18,19 +18,22 @@ const Footer = () => {
               <span className="text-xl font-bold hero-text tv-text-primary text-white">TRAILVI<span className="text-[#38BDF8]">STA</span></span>
             </div>
             <p className="text-[#94A3B8] text-sm leading-relaxed mb-4">
-              Premium Himalayan expeditions and trekking experiences. Your trusted partner for mountain adventures.
+              India's most trusted Himalayan expedition platform. We design transformative trekking and high-altitude experiences with a relentless focus on safety, transparency, and authentic mountain culture.
             </p>
-            <div className="flex space-x-4">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors" data-testid="footer-facebook-link">
+            <p className="text-[#94A3B8] text-sm leading-relaxed mb-5">
+              25,000+ adventurers · 120+ fixed departures every year · 50+ trails across Uttarakhand, Himachal, Kashmir, Ladakh, Sikkim & Nepal.
+            </p>
+            <div className="flex space-x-3">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-[#38BDF8]/10 hover:border-[#38BDF8] flex items-center justify-center text-[#94A3B8] hover:text-[#38BDF8] transition-all" data-testid="footer-facebook-link">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors" data-testid="footer-instagram-link">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-[#38BDF8]/10 hover:border-[#38BDF8] flex items-center justify-center text-[#94A3B8] hover:text-[#38BDF8] transition-all" data-testid="footer-instagram-link">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors" data-testid="footer-twitter-link">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-[#38BDF8]/10 hover:border-[#38BDF8] flex items-center justify-center text-[#94A3B8] hover:text-[#38BDF8] transition-all" data-testid="footer-twitter-link">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors" data-testid="footer-youtube-link">
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-[#38BDF8]/10 hover:border-[#38BDF8] flex items-center justify-center text-[#94A3B8] hover:text-[#38BDF8] transition-all" data-testid="footer-youtube-link">
                 <Youtube className="h-5 w-5" />
               </a>
             </div>
@@ -46,6 +49,7 @@ const Footer = () => {
               <li><Link to="/gallery" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-gallery-link">Gallery</Link></li>
               <li><Link to="/reviews" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-reviews-link">Reviews</Link></li>
               <li><Link to="/blog" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-blog-link">Blog</Link></li>
+              <li><Link to="/faq" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-faq-link">FAQ</Link></li>
             </ul>
           </div>
 

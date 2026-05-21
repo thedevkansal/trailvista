@@ -48,19 +48,19 @@ const About = () => {
             viewport={{ once: true }}
             className="grid grid-cols-2 gap-4"
           >
-            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
+            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[160px]">
               <p className="text-4xl font-black text-[#38BDF8] mb-2">10+</p>
               <p className="text-[#94A3B8] text-sm">Years of Experience</p>
             </div>
-            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
+            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[160px]">
               <p className="text-4xl font-black text-[#38BDF8] mb-2">25K+</p>
               <p className="text-[#94A3B8] text-sm">Happy Trekkers</p>
             </div>
-            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
+            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[160px]">
               <p className="text-4xl font-black text-[#38BDF8] mb-2">50+</p>
               <p className="text-[#94A3B8] text-sm">Trek Routes</p>
             </div>
-            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
+            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[160px]">
               <p className="text-4xl font-black text-[#38BDF8] mb-2">4.9</p>
               <p className="text-[#94A3B8] text-sm">Average Rating</p>
             </div>
@@ -125,6 +125,67 @@ const About = () => {
                 <p className="text-[#94A3B8] text-sm">{value.desc}</p>
               </div>
             ))}
+          </div>
+        </motion.div>
+
+        {/* Affiliations & Recognitions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-16"
+        >
+          <div className="text-center mb-10">
+            <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-3 font-bold">Trust & Recognition</p>
+            <h2 className="text-3xl font-black text-white hero-text uppercase">
+              AFFILIATED <span className="text-[#38BDF8]">WITH</span>
+            </h2>
+            <div className="w-20 h-1 bg-[#F97316] mx-auto mt-4" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { name: 'Indian Mountaineering Foundation', sub: 'Apex National Body', icon: Mountain },
+              { name: 'Uttarakhand Tourism Board', sub: 'Govt. of Uttarakhand', icon: Award },
+              { name: 'Adventure Tour Operators Association of India', sub: 'ATOAI Member', icon: Shield },
+              { name: 'Ministry of Tourism', sub: 'Government of India', icon: Target }
+            ].map((aff, idx) => (
+              <div key={idx} className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center hover:border-[#38BDF8]/30 transition-colors min-h-[180px] flex flex-col items-center justify-center">
+                <div className="w-14 h-14 rounded-full bg-[#38BDF8]/10 flex items-center justify-center mb-4">
+                  <aff.icon className="h-7 w-7 text-[#38BDF8]" />
+                </div>
+                <p className="text-white font-bold text-sm leading-tight mb-2">{aff.name}</p>
+                <p className="text-[#94A3B8] text-xs uppercase tracking-wider">{aff.sub}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Corporate Partners */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-16"
+        >
+          <div className="text-center mb-10">
+            <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-3 font-bold">Group Adventures For</p>
+            <h2 className="text-3xl font-black text-white hero-text uppercase">
+              CORPORATE <span className="text-[#38BDF8]">PARTNERS</span>
+            </h2>
+          </div>
+          <div className="bg-[#071827] border border-white/10 rounded-2xl p-10">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center justify-items-center">
+              {['Google', 'Microsoft', 'Amazon', 'Infosys', 'TCS', 'Wipro'].map((brand) => (
+                <div key={brand} className="text-center group cursor-pointer">
+                  <p className="hero-text text-2xl font-black uppercase tracking-tight text-white/40 group-hover:text-white transition-colors">
+                    {brand}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="text-center text-[#94A3B8] text-sm mt-8">
+              Trusted by 500+ corporate teams for offsites, leadership treks, and team-building expeditions
+            </p>
           </div>
         </motion.div>
 

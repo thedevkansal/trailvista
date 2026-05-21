@@ -51,7 +51,7 @@ const Navbar = () => {
             </Link>
 
             {/* Desktop Menu */}
-            <div className="hidden lg:flex items-center space-x-7">
+            <div className="hidden lg:flex items-center space-x-5 xl:space-x-7">
               <Link to="/treks" className={linkClass('/treks')} data-testid="nav-all-treks-link">All Treks</Link>
               <Link to="/expeditions" className={linkClass('/expeditions')} data-testid="nav-expeditions-link">Expeditions</Link>
               <Link to="/departures" className={linkClass('/departures')} data-testid="nav-departures-link">Departures</Link>
@@ -129,11 +129,12 @@ const Navbar = () => {
               </div>
 
               <Link to="/about" className={linkClass('/about')} data-testid="nav-about-link">About</Link>
+              <Link to="/faq" className={linkClass('/faq')} data-testid="nav-faq-link">FAQ</Link>
               <Link to="/contact" className={linkClass('/contact')} data-testid="nav-contact-link">Contact</Link>
             </div>
 
-            {/* Right side: Theme toggle + CTA */}
-            <div className="hidden lg:flex items-center space-x-3">
+            {/* Right side: Theme toggle + Login + CTA */}
+            <div className="hidden lg:flex items-center space-x-2">
               <button
                 onClick={toggleTheme}
                 className="p-2 rounded-full border border-white/10 hover:border-[#38BDF8] tv-navbar-text transition-all active:scale-95"
@@ -142,9 +143,16 @@ const Navbar = () => {
               >
                 {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </button>
+              <button
+                onClick={() => alert('Login / Signup coming in Phase 2')}
+                className="px-4 py-2 rounded-full border border-white/20 hover:border-[#38BDF8] text-sm font-semibold tv-navbar-text transition-all active:scale-95"
+                data-testid="nav-login-button"
+              >
+                Login
+              </button>
               <Link to="/treks">
                 <button
-                  className="bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all active:scale-95"
+                  className="bg-[#F97316] hover:bg-[#ea580c] text-white px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 whitespace-nowrap"
                   data-testid="nav-book-trek-button"
                 >
                   Book a Trek
@@ -188,6 +196,7 @@ const Navbar = () => {
                   <Link to="/destinations" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-destinations-link" onClick={() => setIsOpen(false)}>Destinations</Link>
                   <Link to="/categories" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-categories-link" onClick={() => setIsOpen(false)}>Categories</Link>
                   <Link to="/about" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-about-link" onClick={() => setIsOpen(false)}>About</Link>
+                  <Link to="/faq" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-faq-link" onClick={() => setIsOpen(false)}>FAQ</Link>
                   <Link to="/contact" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-contact-link" onClick={() => setIsOpen(false)}>Contact</Link>
                   <Link to="/treks" onClick={() => setIsOpen(false)}>
                     <button className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all" data-testid="mobile-book-trek-button">

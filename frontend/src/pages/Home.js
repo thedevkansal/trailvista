@@ -147,38 +147,44 @@ const Home = () => {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="bg-[#071827] border border-white/10 rounded-2xl p-6 hover:border-[#38BDF8]/30 transition-colors"
+                className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden hover:border-[#38BDF8]/30 transition-colors group"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-white font-bold mb-1">{trek.name}</h3>
-                    <p className="text-[#94A3B8] text-sm">{trek.location}</p>
-                  </div>
+                <div className="relative h-40 overflow-hidden">
+                  <img src={trek.image} alt={trek.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#020617] to-transparent" />
                   {trek.seatsLeft < 10 && (
-                    <span className="bg-[#F97316] text-white text-xs font-bold px-3 py-1 rounded-full">
+                    <span className="absolute top-3 right-3 bg-[#F97316] text-white text-xs font-bold px-3 py-1 rounded-full">
                       {trek.seatsLeft} left
                     </span>
                   )}
                 </div>
-                <div className="flex items-center space-x-4 mb-4 text-sm">
-                  <div className="flex items-center space-x-2 text-[#94A3B8]">
-                    <Calendar className="h-4 w-4" />
-                    <span>{new Date(trek.nextBatch).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-white font-bold mb-1">{trek.name}</h3>
+                      <p className="text-[#94A3B8] text-sm">{trek.location}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2 text-[#94A3B8]">
-                    <Clock className="h-4 w-4" />
-                    <span>{trek.duration}</span>
+                  <div className="flex items-center space-x-4 mb-4 text-sm">
+                    <div className="flex items-center space-x-2 text-[#94A3B8]">
+                      <Calendar className="h-4 w-4" />
+                      <span>{new Date(trek.nextBatch).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-[#94A3B8]">
+                      <Clock className="h-4 w-4" />
+                      <span>{trek.duration}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                  <span className="text-xl font-bold text-white">₹{trek.price.toLocaleString('en-IN')}</span>
-                  <button
-                    onClick={() => navigate(`/trek/${trek.id}`)}
-                    className="bg-[#38BDF8] hover:bg-[#0ea5e9] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all active:scale-95"
-                    data-testid={`departure-book-${trek.id}`}
-                  >
-                    Book Now
-                  </button>
+                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                    <span className="text-xl font-bold text-white">₹{trek.price.toLocaleString('en-IN')}</span>
+                    <button
+                      onClick={() => navigate(`/trek/${trek.id}`)}
+                      className="bg-[#38BDF8] hover:bg-[#0ea5e9] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all active:scale-95"
+                      data-testid={`departure-book-${trek.id}`}
+                    >
+                      Book Now
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ))}
