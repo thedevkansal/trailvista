@@ -293,6 +293,7 @@ const TrekDetail = () => {
 
               <div className="space-y-3">
                 <button 
+                  onClick={() => setEnquiryOpen(true)}
                   className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3 rounded-lg font-bold transition-all active:scale-95"
                   data-testid="trek-detail-book-now"
                 >
