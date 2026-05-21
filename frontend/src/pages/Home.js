@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Users, Shield, DollarSign, Calendar, MapPin, Thermometer,
-  Heart, Award, TrendingUp, Clock, Mountain, Snowflake, Sun
+  Heart, Award, TrendingUp, Mountain, Snowflake, Sun
 } from 'lucide-react';
 import CinematicHero from '../components/CinematicHero';
 import SearchBar from '../components/SearchBar';
@@ -27,11 +27,6 @@ const Home = () => {
     { url: 'https://images.unsplash.com/photo-1666501548252-d455a2b9554d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHwyfHx0cmVra2luZyUyMGdyb3VwJTIwY2FtcGluZyUyMHRlbnRzJTIwYWR2ZW50dXJlfGVufDB8fHx8MTc3OTM5MzM3NHww&ixlib=rb-4.1.0&q=85', description: 'Camping tents in mountains' },
     { url: 'https://images.unsplash.com/photo-1632751796489-cd5902a5737c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHw0fHx0cmVra2luZyUyMGdyb3VwJTIwY2FtcGluZyUyMHRlbnRzJTIwYWR2ZW50dXJlfGVufDB8fHx8MTc3OTM5MzM3NHww&ixlib=rb-4.1.0&q=85', description: 'Group camping expedition' },
   ];
-
-  const upcomingDepartures = treks
-    .filter(t => t.nextBatch)
-    .sort((a, b) => new Date(a.nextBatch) - new Date(b.nextBatch))
-    .slice(0, 6);
 
   return (
     <div className="min-h-screen">
@@ -121,83 +116,6 @@ const Home = () => {
               data-testid="view-all-treks-button"
             >
               View All Treks
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Upcoming Departures */}
-      <section className="py-24 bg-[#071827]/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">Book Your Slot</p>
-            <h2 className="text-4xl md:text-5xl font-black text-white hero-text uppercase mb-6">
-              UPCOMING <span className="text-[#38BDF8]">DEPARTURES</span>
-            </h2>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {upcomingDepartures.map((trek) => (
-              <motion.div
-                key={trek.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden hover:border-[#38BDF8]/30 transition-colors group"
-              >
-                <div className="relative h-40 overflow-hidden">
-                  <img src={trek.image} alt={trek.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#020617] to-transparent" />
-                  {trek.seatsLeft < 10 && (
-                    <span className="absolute top-3 right-3 bg-[#F97316] text-white text-xs font-bold px-3 py-1 rounded-full">
-                      {trek.seatsLeft} left
-                    </span>
-                  )}
-                </div>
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-white font-bold mb-1">{trek.name}</h3>
-                      <p className="text-[#94A3B8] text-sm">{trek.location}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4 mb-4 text-sm">
-                    <div className="flex items-center space-x-2 text-[#94A3B8]">
-                      <Calendar className="h-4 w-4" />
-                      <span>{new Date(trek.nextBatch).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-[#94A3B8]">
-                      <Clock className="h-4 w-4" />
-                      <span>{trek.duration}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                    <span className="text-xl font-bold text-white">₹{trek.price.toLocaleString('en-IN')}</span>
-                    <button
-                      onClick={() => navigate(`/trek/${trek.id}`)}
-                      className="bg-[#38BDF8] hover:bg-[#0ea5e9] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all active:scale-95"
-                      data-testid={`departure-book-${trek.id}`}
-                    >
-                      Book Now
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <button
-              onClick={() => navigate('/departures')}
-              className="border border-white/30 hover:border-[#38BDF8] text-white px-8 py-3 rounded-full font-semibold transition-all active:scale-95"
-              data-testid="view-all-departures-button"
-            >
-              View All Departures
             </button>
           </div>
         </div>

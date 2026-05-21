@@ -7,7 +7,6 @@ import Home from './pages/Home';
 import AllTreks from './pages/AllTreks';
 import TrekDetail from './pages/TrekDetail';
 import Expeditions from './pages/Expeditions';
-import Departures from './pages/Departures';
 import Destinations from './pages/Destinations';
 import Categories from './pages/Categories';
 import About from './pages/About';
@@ -30,7 +29,6 @@ function App() {
             <Route path="/treks" element={<AllTreks />} />
             <Route path="/trek/:id" element={<TrekDetail />} />
             <Route path="/expeditions" element={<Expeditions />} />
-            <Route path="/departures" element={<Departures />} />
             <Route path="/destinations" element={<Destinations />} />
             <Route path="/destinations/:id" element={<Destinations />} />
             <Route path="/categories" element={<Categories />} />

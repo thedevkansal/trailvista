@@ -98,7 +98,6 @@ const AllTreks = () => {
               <option value="price-low">Price: Low to High</option>
               <option value="price-high">Price: High to Low</option>
               <option value="duration">Duration</option>
-              <option value="upcoming">Upcoming Departures</option>
             </select>
           </div>
         </div>

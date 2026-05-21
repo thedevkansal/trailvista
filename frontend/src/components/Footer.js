@@ -42,7 +42,6 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/treks" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-all-treks-link">All Treks</Link></li>
               <li><Link to="/expeditions" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-expeditions-link">Expeditions</Link></li>
-              <li><Link to="/departures" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-departures-link">Upcoming Departures</Link></li>
               <li><Link to="/gallery" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-gallery-link">Gallery</Link></li>
               <li><Link to="/reviews" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-reviews-link">Reviews</Link></li>
               <li><Link to="/blog" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-blog-link">Blog</Link></li>

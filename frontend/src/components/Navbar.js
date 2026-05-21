@@ -54,7 +54,6 @@ const Navbar = () => {
             <div className="hidden lg:flex items-center space-x-5 xl:space-x-7">
               <Link to="/treks" className={linkClass('/treks')} data-testid="nav-all-treks-link">All Treks</Link>
               <Link to="/expeditions" className={linkClass('/expeditions')} data-testid="nav-expeditions-link">Expeditions</Link>
-              <Link to="/departures" className={linkClass('/departures')} data-testid="nav-departures-link">Departures</Link>
 
               {/* Destinations Dropdown */}
               <div
@@ -192,7 +191,6 @@ const Navbar = () => {
                 <div className="flex flex-col space-y-4 pb-4">
                   <Link to="/treks" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-all-treks-link" onClick={() => setIsOpen(false)}>All Treks</Link>
                   <Link to="/expeditions" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-expeditions-link" onClick={() => setIsOpen(false)}>Expeditions</Link>
-                  <Link to="/departures" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-departures-link" onClick={() => setIsOpen(false)}>Departures</Link>
                   <Link to="/destinations" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-destinations-link" onClick={() => setIsOpen(false)}>Destinations</Link>
                   <Link to="/categories" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-categories-link" onClick={() => setIsOpen(false)}>Categories</Link>
                   <Link to="/about" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-about-link" onClick={() => setIsOpen(false)}>About</Link>
