@@ -47,8 +47,8 @@ const Home = () => {
         onSecondaryClick={() => navigate('/contact')}
       />
 
-      {/* Trust Stats - Floating Cards */}
-      <div className="relative -mt-16 z-20 px-4">
+      {/* Trust Stats - Floating Cards (positioned below hero, not overlapping) */}
+      <div className="relative z-20 px-4 pt-12 pb-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <motion.div

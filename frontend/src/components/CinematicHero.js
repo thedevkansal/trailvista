@@ -101,7 +101,7 @@ const CinematicHero = ({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="absolute top-[10%] left-[2%] sm:left-[4%] flex items-center space-x-3"
+            className="absolute top-[15%] sm:top-[14%] left-[2%] sm:left-[4%] flex items-center space-x-3"
           >
             <span className="block h-px w-12 bg-[#38BDF8]" />
             <p className="text-[#BAE6FD] text-xs sm:text-sm uppercase tracking-[0.3em] font-bold">
@@ -114,7 +114,7 @@ const CinematicHero = ({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7 }}
-            className="hidden md:flex absolute top-[10%] right-[2%] sm:right-[4%] items-center space-x-2 px-4 py-2 rounded-full backdrop-blur-md bg-white/10 border border-white/20"
+            className="hidden md:flex absolute top-[15%] sm:top-[14%] right-[2%] sm:right-[4%] items-center space-x-2 px-4 py-2 rounded-full backdrop-blur-md bg-white/10 border border-white/20"
           >
             <MapPin className="h-3.5 w-3.5 text-[#38BDF8]" />
             <span className="text-white text-xs font-semibold tracking-wide">HIMALAYA · 6000M+</span>
