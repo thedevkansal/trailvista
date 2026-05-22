@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 import { LogIn, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { syncSession } = useAuth();
 
   const [email, setEmail] = useState(location.state?.email || '');
   const [password, setPassword] = useState('');
@@ -27,7 +28,10 @@ const Login = () => {
     try {
       setError(null);
       setLoading(true);
-      await login(email, password);
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) throw signInError;
+
+      await syncSession();
       navigate(redirectPath, { replace: true });
     } catch (err) {
       const errMsg = err.message || '';

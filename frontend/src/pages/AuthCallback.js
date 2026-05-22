@@ -3,54 +3,62 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { ShieldAlert } from 'lucide-react';
 
+const hasAuthParamsInUrl = () => {
+  const { search, hash } = window.location;
+  return (
+    search.includes('code=') ||
+    hash.includes('access_token=') ||
+    hash.includes('refresh_token=') ||
+    hash.includes('type=')
+  );
+};
+
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [error, setError] = useState(null);
-  const handled = useRef(false);
+  const redirected = useRef(false);
 
   useEffect(() => {
-    if (handled.current) return;
-    handled.current = true;
+    const redirectHome = () => {
+      if (redirected.current) return;
+      redirected.current = true;
+      navigate('/', { replace: true });
+    };
 
-    // Set a fallback timeout — if no session after 5 seconds, show error
     const timeout = setTimeout(() => {
-      setError('Verification completed, but login session was not created. Please log in manually.');
+      if (!redirected.current) {
+        setError(
+          'Verification completed, but login session was not created. Please log in manually.'
+        );
+      }
     }, 5000);
 
-    // Listen for auth state change (SIGNED_IN after code exchange)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         clearTimeout(timeout);
-        navigate('/', { replace: true });
+        redirectHome();
       }
     });
 
-    // Check if session already exists, or explicitly exchange code if present
     const checkSession = async () => {
-      try {
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        if (existingSession) {
-          clearTimeout(timeout);
-          navigate('/', { replace: true });
-          return;
-        }
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error('AuthCallback getSession error:', sessionError);
+      }
+      if (session) {
+        clearTimeout(timeout);
+        redirectHome();
+        return;
+      }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        if (code) {
-          const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          if (exchangeError) throw exchangeError;
-          if (exchangeData.session) {
-            clearTimeout(timeout);
-            navigate('/', { replace: true });
-          }
-        }
-      } catch (err) {
-        console.error('AuthCallback exchange error:', err);
+      if (!hasAuthParamsInUrl()) {
+        clearTimeout(timeout);
+        setError(
+          'Verification completed, but login session was not created. Please log in manually.'
+        );
       }
     };
 
-    // Run check/exchange immediately
     checkSession();
 
     return () => {
