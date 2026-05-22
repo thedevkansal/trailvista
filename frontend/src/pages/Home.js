@@ -13,9 +13,11 @@ import ReviewMarquee from '../components/ReviewMarquee';
 import AffiliationsStrip from '../components/AffiliationsStrip';
 import HorizontalScrollSection from '../components/HorizontalScrollSection';
 import { treks, reviews, blogPosts, categories } from '../data/treksData';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [enquiryOpen, setEnquiryOpen] = useState(false);
 
   const popularTreks = treks.slice(0, 6);
@@ -41,7 +43,13 @@ const Home = () => {
         ctaPrimary="Explore Treks"
         ctaSecondary="Plan Custom Trip"
         onPrimaryClick={() => navigate('/treks')}
-        onSecondaryClick={() => navigate('/contact')}
+        onSecondaryClick={() => {
+          if (!user) {
+            navigate('/signup', { state: { from: '/contact' } });
+          } else {
+            navigate('/contact');
+          }
+        }}
       />
 
       {/* Trust Stats - Floating Cards (positioned below hero, not overlapping) */}

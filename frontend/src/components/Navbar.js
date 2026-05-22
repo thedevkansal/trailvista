@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronDown, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +11,22 @@ const Navbar = () => {
   const [destinationDropdown, setDestinationDropdown] = useState(false);
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const getUserDisplayName = () => {
+    if (!user) return '';
+    if (user.profile?.full_name) {
+      return user.profile.full_name;
+    }
+    if (user.user_metadata?.full_name) {
+      return user.user_metadata.full_name;
+    }
+    if (user.email) {
+      return user.email.split('@')[0];
+    }
+    return 'Explorer';
+  };
 
   const isActive = (path) => location.pathname === path;
 
@@ -132,7 +149,7 @@ const Navbar = () => {
               <Link to="/contact" className={linkClass('/contact')} data-testid="nav-contact-link">Contact</Link>
             </div>
 
-            {/* Right side: Theme toggle + Login + CTA */}
+            {/* Right side: Theme toggle + Login/Logout + CTA */}
             <div className="hidden lg:flex items-center space-x-2">
               <button
                 onClick={toggleTheme}
@@ -142,21 +159,50 @@ const Navbar = () => {
               >
                 {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </button>
-              <button
-                onClick={() => alert('Login / Signup coming in Phase 2')}
-                className="px-4 py-2 rounded-full border border-white/20 hover:border-[#38BDF8] text-sm font-semibold tv-navbar-text transition-all active:scale-95"
-                data-testid="nav-login-button"
-              >
-                Login
-              </button>
-              <Link to="/treks">
-                <button
-                  className="bg-[#F97316] hover:bg-[#ea580c] text-white px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 whitespace-nowrap"
-                  data-testid="nav-book-trek-button"
-                >
-                  Book a Trek
-                </button>
-              </Link>
+              {user ? (
+                <>
+                  <span className="text-sm font-medium tv-navbar-text px-2 max-w-[150px] truncate" title={getUserDisplayName()}>
+                    Hi, {getUserDisplayName()}
+                  </span>
+                  <button
+                    onClick={async () => {
+                      await logout();
+                      navigate('/');
+                    }}
+                    className="px-4 py-2 rounded-full border border-white/20 hover:border-red-500 hover:text-red-500 text-sm font-semibold tv-navbar-text transition-all active:scale-95"
+                    data-testid="nav-logout-button"
+                  >
+                    Logout
+                  </button>
+                  <Link to="/treks">
+                    <button
+                      className="bg-[#F97316] hover:bg-[#ea580c] text-white px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 whitespace-nowrap"
+                      data-testid="nav-book-trek-button"
+                    >
+                      Book a Trek
+                    </button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <button
+                      className="px-4 py-2 rounded-full border border-white/20 hover:border-[#38BDF8] text-sm font-semibold tv-navbar-text transition-all active:scale-95"
+                      data-testid="nav-login-button"
+                    >
+                      Login
+                    </button>
+                  </Link>
+                  <Link to="/signup" state={{ from: '/treks' }}>
+                    <button
+                      className="bg-[#F97316] hover:bg-[#ea580c] text-white px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 whitespace-nowrap"
+                      data-testid="nav-book-trek-button"
+                    >
+                      Book a Trek
+                    </button>
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile: Theme toggle + Menu */}
@@ -196,11 +242,42 @@ const Navbar = () => {
                   <Link to="/about" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-about-link" onClick={() => setIsOpen(false)}>About</Link>
                   <Link to="/faq" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-faq-link" onClick={() => setIsOpen(false)}>FAQ</Link>
                   <Link to="/contact" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-contact-link" onClick={() => setIsOpen(false)}>Contact</Link>
-                  <Link to="/treks" onClick={() => setIsOpen(false)}>
-                    <button className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all" data-testid="mobile-book-trek-button">
-                      Book a Trek
-                    </button>
-                  </Link>
+                  {user ? (
+                    <>
+                      <div className="tv-navbar-text font-semibold px-2 py-1 border-t border-white/10 text-sm">
+                        Hi, {getUserDisplayName()}
+                      </div>
+                      <button 
+                        onClick={async () => {
+                          setIsOpen(false);
+                          await logout();
+                          navigate('/');
+                        }}
+                        className="w-full border border-white/20 hover:border-red-500 hover:text-red-500 text-white px-6 py-2 rounded-full text-sm font-semibold transition-all"
+                        data-testid="mobile-logout-button"
+                      >
+                        Logout
+                      </button>
+                      <Link to="/treks" onClick={() => setIsOpen(false)}>
+                        <button className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all" data-testid="mobile-book-trek-button">
+                          Book a Trek
+                        </button>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/login" onClick={() => setIsOpen(false)}>
+                        <button className="w-full border border-white/20 hover:border-[#38BDF8] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all" data-testid="mobile-login-button">
+                          Login
+                        </button>
+                      </Link>
+                      <Link to="/signup" state={{ from: '/treks' }} onClick={() => setIsOpen(false)}>
+                        <button className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all" data-testid="mobile-book-trek-button">
+                          Book a Trek
+                        </button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </motion.div>
             )}

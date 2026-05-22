@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   MapPin, Calendar, TrendingUp, Mountain, Users, Shield, 
@@ -7,10 +7,13 @@ import {
 } from 'lucide-react';
 import EnquiryModal from '../components/EnquiryModal';
 import { treks, reviews as allReviews } from '../data/treksData';
+import { useAuth } from '../context/AuthContext';
 
 const TrekDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   
@@ -293,14 +296,26 @@ const TrekDetail = () => {
 
               <div className="space-y-3">
                 <button 
-                  onClick={() => setEnquiryOpen(true)}
+                  onClick={() => {
+                    if (!user) {
+                      navigate('/signup', { state: { from: location.pathname } });
+                    } else {
+                      setEnquiryOpen(true);
+                    }
+                  }}
                   className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3 rounded-lg font-bold transition-all active:scale-95"
                   data-testid="trek-detail-book-now"
                 >
                   Book Now
                 </button>
                 <button 
-                  onClick={() => setEnquiryOpen(true)}
+                  onClick={() => {
+                    if (!user) {
+                      navigate('/signup', { state: { from: location.pathname } });
+                    } else {
+                      setEnquiryOpen(true);
+                    }
+                  }}
                   className="w-full border border-white/30 hover:border-[#38BDF8] text-white px-6 py-3 rounded-lg font-bold transition-all active:scale-95 flex items-center justify-center space-x-2"
                   data-testid="trek-detail-send-enquiry"
                 >
