@@ -74,7 +74,7 @@ const TrekDetail = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-32 pb-24">
+    <div className="min-h-screen pt-24 lg:pt-32 pb-24">
       {/* Hero Section */}
       <div className="tv-cinematic relative h-[60vh] mb-12">
         <img 
@@ -103,7 +103,7 @@ const TrekDetail = () => {
                   </span>
                 )}
               </div>
-              <h1 className="text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white hero-text uppercase mb-4">
                 {trek.name}
               </h1>
               <div className="flex flex-wrap items-center gap-6 text-[#94A3B8]">
@@ -308,23 +308,23 @@ const TrekDetail = () => {
                   <span>Send Enquiry</span>
                 </button>
                 <div className="grid grid-cols-2 gap-3">
-                  <a 
-                    href="https://wa.me/919876543210" 
-                    target="_blank" 
+                  <a
+                    href="https://wa.me/919876543210"
+                    target="_blank"
                     rel="noopener noreferrer"
-                    className="border border-white/20 hover:border-[#25D366] hover:bg-[#25D366]/10 text-white px-4 py-3 rounded-lg font-semibold text-sm transition-all active:scale-95 flex items-center justify-center space-x-2"
+                    className="border border-white/20 hover:border-[#25D366] hover:bg-[#25D366]/10 text-white px-3 py-3 rounded-lg font-semibold text-xs sm:text-sm transition-all active:scale-95 flex items-center justify-center space-x-1.5"
                     data-testid="trek-detail-whatsapp"
                   >
-                    <svg className="h-4 w-4 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4 text-[#25D366] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
                     </svg>
                     <span>WhatsApp</span>
                   </a>
-                  <button 
-                    className="border border-white/20 hover:border-[#38BDF8] hover:bg-[#38BDF8]/10 text-white px-4 py-3 rounded-lg font-semibold text-sm transition-all active:scale-95 flex items-center justify-center space-x-2"
+                  <button
+                    className="border border-white/20 hover:border-[#38BDF8] hover:bg-[#38BDF8]/10 text-white px-3 py-3 rounded-lg font-semibold text-xs sm:text-sm transition-all active:scale-95 flex items-center justify-center space-x-1.5"
                     data-testid="trek-detail-download-brochure"
                   >
-                    <Download className="h-4 w-4 text-[#38BDF8]" />
+                    <Download className="h-4 w-4 text-[#38BDF8] flex-shrink-0" />
                     <span>Brochure</span>
                   </button>
                 </div>

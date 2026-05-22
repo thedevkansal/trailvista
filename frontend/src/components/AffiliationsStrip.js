@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Marquee from 'react-fast-marquee';
+import HorizontalScrollSection from './HorizontalScrollSection';
 
 /**
  * AffiliationsStrip
@@ -74,8 +75,32 @@ const AffiliationsStrip = ({ showHeader = true, compact = false }) => {
           </motion.div>
         )}
 
-        {/* Affiliations — glass cards with real logos */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-20">
+        {/* Mobile: horizontal swipe row */}
+        <HorizontalScrollSection className="mb-20">
+          {affiliations.map((aff, idx) => (
+            <div
+              key={idx}
+              className="backdrop-blur-xl bg-white border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-between min-h-[200px] h-full"
+            >
+              {/* Logo */}
+              <div className="flex-1 flex items-center justify-center w-full mb-4">
+                <img
+                  src={aff.src}
+                  alt={aff.name}
+                  className="h-16 w-auto max-w-[120px] object-contain"
+                />
+              </div>
+              {/* Caption */}
+              <div className="text-center">
+                <p className="text-[#020617] font-bold text-sm leading-tight mb-1">{aff.name}</p>
+                <p className="text-[#0369A1] text-[10px] uppercase tracking-[0.2em] font-bold">{aff.sub}</p>
+              </div>
+            </div>
+          ))}
+        </HorizontalScrollSection>
+
+        {/* Desktop: normal grid */}
+        <div className="hidden md:grid md:grid-cols-4 gap-5 mb-20">
           {affiliations.map((aff, idx) => (
             <motion.div
               key={idx}

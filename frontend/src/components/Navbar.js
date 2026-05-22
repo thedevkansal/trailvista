@@ -36,16 +36,16 @@ const Navbar = () => {
   return (
     <nav className="fixed top-4 left-0 right-0 z-50 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="tv-navbar backdrop-blur-xl bg-[#020617]/80 border border-white/10 rounded-full px-6 py-3 shadow-2xl">
+        <div className="tv-navbar backdrop-blur-xl bg-[#020617]/80 border border-white/10 rounded-full px-4 py-2 sm:px-6 sm:py-3 shadow-2xl">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-3" data-testid="nav-logo-link">
+            <Link to="/" className="flex items-center space-x-2 sm:space-x-3" data-testid="nav-logo-link">
               <img
                 src="https://static.prod-images.emergentagent.com/jobs/221755c1-0324-4690-aa42-bfdb3646c22b/images/07979eb0085519e24d5c27211b05e6a615ac4003d035ff3cc438e9f0a527dce3.png"
                 alt="TrailVista Expeditions"
-                className="h-10 w-10"
+                className="h-8 w-8 sm:h-10 sm:w-10"
               />
-              <span className="text-xl font-bold hero-text tv-navbar-text">
+              <span className="text-lg sm:text-xl font-bold hero-text tv-navbar-text">
                 TRAILVI<span className="text-[#38BDF8]">STA</span>
               </span>
             </Link>
@@ -186,9 +186,9 @@ const Navbar = () => {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="lg:hidden mt-4 pt-4 border-t border-white/10 tv-divider overflow-hidden"
+                className="lg:hidden mt-3 pt-3 border-t border-white/10 tv-divider overflow-hidden"
               >
-                <div className="flex flex-col space-y-4 pb-4">
+                <div className="flex flex-col space-y-3 pb-3 max-h-[60vh] overflow-y-auto">
                   <Link to="/treks" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-all-treks-link" onClick={() => setIsOpen(false)}>All Treks</Link>
                   <Link to="/expeditions" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-expeditions-link" onClick={() => setIsOpen(false)}>Expeditions</Link>
                   <Link to="/destinations" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-destinations-link" onClick={() => setIsOpen(false)}>Destinations</Link>

@@ -179,6 +179,15 @@ html { scroll-behavior: smooth; }
 ::-webkit-scrollbar-thumb { background: #38BDF8; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #BAE6FD; }
 
+/* Hide scrollbar for horizontal scroll rows on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 @layer base {
     [data-debug-wrapper="true"] { display: contents !important; }
     [data-debug-wrapper="true"] > * {

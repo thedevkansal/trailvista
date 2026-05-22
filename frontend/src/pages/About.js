@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Award, Users, Heart, Target, Mountain, Shield } from 'lucide-react';
 import AffiliationsStrip from '../components/AffiliationsStrip';
+import HorizontalScrollSection from '../components/HorizontalScrollSection';
 
 const About = () => {
   return (
@@ -12,7 +13,7 @@ const About = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-16"
         >
-          <h1 className="text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
             ABOUT <span className="text-[#38BDF8]">TRAILVISTA</span>
           </h1>
           <p className="text-[#94A3B8] text-lg max-w-3xl mx-auto">
@@ -111,19 +112,19 @@ const About = () => {
           <h2 className="text-3xl font-black text-white hero-text uppercase text-center mb-12">
             OUR <span className="text-[#38BDF8]">VALUES</span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {[
               { icon: Shield, title: 'Safety First', desc: 'Your safety is our top priority in every expedition' },
               { icon: Heart, title: 'Passion', desc: 'We love the mountains and it shows in everything we do' },
               { icon: Users, title: 'Community', desc: 'Building a community of responsible mountain enthusiasts' },
               { icon: Award, title: 'Excellence', desc: 'Committed to delivering exceptional experiences' }
             ].map((value, index) => (
-              <div key={index} className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
-                <div className="w-12 h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <value.icon className="h-6 w-6 text-[#38BDF8]" />
+              <div key={index} className="bg-[#071827] border border-white/10 rounded-2xl p-4 sm:p-6 text-center">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <value.icon className="h-5 w-5 sm:h-6 sm:w-6 text-[#38BDF8]" />
                 </div>
-                <h4 className="text-white font-bold mb-2">{value.title}</h4>
-                <p className="text-[#94A3B8] text-sm">{value.desc}</p>
+                <h4 className="text-white font-bold mb-1 sm:mb-2 text-sm sm:text-base">{value.title}</h4>
+                <p className="text-[#94A3B8] text-xs sm:text-sm">{value.desc}</p>
               </div>
             ))}
           </div>
@@ -141,7 +142,24 @@ const About = () => {
           <h2 className="text-3xl font-black text-white hero-text uppercase text-center mb-12">
             MEET THE <span className="text-[#38BDF8]">TEAM</span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Mobile: swipe */}
+          <HorizontalScrollSection>
+            {[
+              { name: 'Rajesh Kumar', role: 'Founder & Lead Expedition Guide', image: 'https://images.unsplash.com/photo-1486036413660-59d02a64e549' },
+              { name: 'Priya Sharma', role: 'Operations Head', image: 'https://images.pexels.com/photos/5779251/pexels-photo-5779251.jpeg' },
+              { name: 'Vikram Singh', role: 'Senior Trek Leader', image: 'https://images.unsplash.com/photo-1486036413660-59d02a64e549' }
+            ].map((member, index) => (
+              <div key={index} className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden h-full">
+                <img src={member.image} alt={member.name} className="w-full h-52 object-cover" />
+                <div className="p-5">
+                  <h4 className="text-white font-bold text-base mb-1">{member.name}</h4>
+                  <p className="text-[#38BDF8] text-sm">{member.role}</p>
+                </div>
+              </div>
+            ))}
+          </HorizontalScrollSection>
+          {/* Desktop: grid */}
+          <div className="hidden md:grid md:grid-cols-3 gap-8">
             {[
               { name: 'Rajesh Kumar', role: 'Founder & Lead Expedition Guide', image: 'https://images.unsplash.com/photo-1486036413660-59d02a64e549' },
               { name: 'Priya Sharma', role: 'Operations Head', image: 'https://images.pexels.com/photos/5779251/pexels-photo-5779251.jpeg' },

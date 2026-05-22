@@ -30,7 +30,7 @@ const CinematicHero = ({
   return (
     <section
       ref={ref}
-      className="tv-hero-zone relative w-full h-screen min-h-[760px] overflow-hidden bg-[#020617]"
+      className="tv-hero-zone relative w-full h-[100dvh] md:h-screen min-h-[500px] md:min-h-[760px] overflow-hidden bg-[#020617]"
       data-testid="cinematic-hero"
     >
       {/* Layer 1: Background image with parallax */}
@@ -64,7 +64,7 @@ const CinematicHero = ({
             initial={{ opacity: 0, x: -80 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text absolute top-[16%] left-[2%] sm:left-[4%] text-white font-black uppercase leading-[0.82] text-[20vw] sm:text-[16vw] lg:text-[14vw] select-none"
+            className="hero-text absolute top-[13%] sm:top-[16%] left-[4%] sm:left-[4%] text-white font-black uppercase leading-[0.82] text-[15vw] sm:text-[16vw] lg:text-[14vw] select-none"
             style={{ textShadow: '0 8px 60px rgba(2,6,23,0.7)' }}
           >
             {word1}
@@ -75,7 +75,7 @@ const CinematicHero = ({
             initial={{ opacity: 0, x: 80 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1.1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text absolute top-[40%] right-[3%] sm:right-[5%] font-black uppercase leading-[0.82] text-[20vw] sm:text-[16vw] lg:text-[14vw] hero-text-outline select-none"
+            className="hero-text absolute top-[36%] sm:top-[40%] right-[4%] sm:right-[5%] font-black uppercase leading-[0.82] text-[15vw] sm:text-[16vw] lg:text-[14vw] hero-text-outline select-none"
           >
             {word2}
           </motion.span>
@@ -85,7 +85,7 @@ const CinematicHero = ({
             initial={{ opacity: 0, y: 80 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="hero-text absolute bottom-[10%] right-[3%] sm:right-[5%] text-white font-black uppercase leading-[0.82] text-[20vw] sm:text-[16vw] lg:text-[13vw] select-none"
+            className="hero-text absolute bottom-[24%] sm:bottom-[10%] right-[4%] sm:right-[5%] text-white font-black uppercase leading-[0.82] text-[15vw] sm:text-[16vw] lg:text-[13vw] select-none"
             style={{ textShadow: '0 8px 60px rgba(2,6,23,0.7)' }}
           >
             <span className="text-[#38BDF8]">L</span>{word3.slice(1)}
@@ -101,10 +101,10 @@ const CinematicHero = ({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="absolute top-[15%] sm:top-[14%] left-[2%] sm:left-[4%] flex items-center space-x-3"
+            className="absolute top-[8%] sm:top-[14%] left-[4%] sm:left-[4%] flex items-center space-x-2 sm:space-x-3"
           >
-            <span className="block h-px w-12 bg-[#38BDF8]" />
-            <p className="text-[#BAE6FD] text-xs sm:text-sm uppercase tracking-[0.3em] font-bold">
+            <span className="block h-px w-8 sm:w-12 bg-[#38BDF8]" />
+            <p className="text-[#BAE6FD] text-[10px] sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] font-bold">
               {subtitle}
             </p>
           </motion.div>
@@ -137,16 +137,16 @@ const CinematicHero = ({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.9 }}
-            className="absolute bottom-[10%] left-[2%] sm:left-[4%] max-w-md pointer-events-auto"
+            className="absolute bottom-[6%] sm:bottom-[10%] left-[4%] sm:left-[4%] max-w-md pointer-events-auto"
           >
             <p className="text-white/85 text-sm sm:text-base leading-relaxed mb-5 font-light hidden md:block">
               {description}
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-row gap-2.5 sm:gap-3">
               {ctaPrimary && (
                 <button
                   onClick={onPrimaryClick}
-                  className="bg-[#F97316] hover:bg-[#ea580c] text-white px-7 py-3.5 rounded-full text-sm font-bold tracking-wide transition-all active:scale-95 shadow-[0_0_40px_-10px_#F97316]"
+                  className="bg-[#F97316] hover:bg-[#ea580c] text-white px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-full text-xs sm:text-sm font-bold tracking-wide transition-all active:scale-95 shadow-[0_0_40px_-10px_#F97316]"
                   data-testid="hero-primary-cta"
                 >
                   {ctaPrimary} →
@@ -155,7 +155,7 @@ const CinematicHero = ({
               {ctaSecondary && (
                 <button
                   onClick={onSecondaryClick}
-                  className="border border-white/30 hover:border-white text-white px-7 py-3.5 rounded-full text-sm font-bold tracking-wide transition-all active:scale-95 backdrop-blur-md bg-white/5"
+                  className="border border-white/30 hover:border-white text-white px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-full text-xs sm:text-sm font-bold tracking-wide transition-all active:scale-95 backdrop-blur-md bg-white/5"
                   data-testid="hero-secondary-cta"
                 >
                   {ctaSecondary}
@@ -169,7 +169,7 @@ const CinematicHero = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.4, duration: 0.8 }}
-            className="absolute bottom-[10%] right-[2%] sm:right-[4%] flex flex-col items-center"
+            className="hidden sm:flex absolute bottom-[10%] right-[2%] sm:right-[4%] flex-col items-center"
           >
             <p className="text-white/60 text-[10px] uppercase tracking-[0.3em] font-bold mb-3 [writing-mode:vertical-rl] rotate-180">
               Scroll

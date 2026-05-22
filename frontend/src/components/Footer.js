@@ -4,12 +4,12 @@ import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from 'luci
 
 const Footer = () => {
   return (
-    <footer className="tv-footer bg-[#071827] border-t border-white/10 tv-divider pt-16 pb-8">
+    <footer className="tv-footer bg-[#071827] border-t border-white/10 tv-divider pt-10 pb-6 md:pt-16 md:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-6 md:gap-8 mb-8 md:mb-12">
           {/* Brand */}
-          <div className="lg:col-span-1">
-            <div className="flex items-center space-x-3 mb-4">
+          <div className="col-span-2 md:col-span-1 lg:col-span-1">
+            <div className="flex items-center space-x-3 mb-3 md:mb-4">
               <img 
                 src="https://static.prod-images.emergentagent.com/jobs/221755c1-0324-4690-aa42-bfdb3646c22b/images/07979eb0085519e24d5c27211b05e6a615ac4003d035ff3cc438e9f0a527dce3.png" 
                 alt="TrailVista Expeditions" 
@@ -17,7 +17,7 @@ const Footer = () => {
               />
               <span className="text-xl font-bold hero-text tv-text-primary text-white">TRAILVI<span className="text-[#38BDF8]">STA</span></span>
             </div>
-            <p className="text-[#94A3B8] text-sm leading-relaxed mb-5">
+            <p className="text-[#94A3B8] text-sm leading-relaxed mb-4 md:mb-5">
               India's most trusted Himalayan expedition platform. We design transformative trekking and high-altitude experiences with a relentless focus on safety, transparency, and authentic mountain culture.
             </p>
             <div className="flex space-x-3">
@@ -38,8 +38,8 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-bold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
+            <h3 className="text-white font-bold mb-3 md:mb-4">Quick Links</h3>
+            <ul className="space-y-1.5 md:space-y-2">
               <li><Link to="/treks" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-all-treks-link">All Treks</Link></li>
               <li><Link to="/expeditions" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-expeditions-link">Expeditions</Link></li>
               <li><Link to="/gallery" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-gallery-link">Gallery</Link></li>
@@ -51,8 +51,8 @@ const Footer = () => {
 
           {/* Trek Categories */}
           <div>
-            <h3 className="text-white font-bold mb-4">Trek Categories</h3>
-            <ul className="space-y-2">
+            <h3 className="text-white font-bold mb-3 md:mb-4">Trek Categories</h3>
+            <ul className="space-y-1.5 md:space-y-2">
               <li><Link to="/categories/beginner" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm">Beginner Treks</Link></li>
               <li><Link to="/categories/winter" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm">Winter Treks</Link></li>
               <li><Link to="/categories/summer" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm">Summer Treks</Link></li>
@@ -62,9 +62,9 @@ const Footer = () => {
           </div>
 
           {/* Contact */}
-          <div>
-            <h3 className="text-white font-bold mb-4">Contact Us</h3>
-            <ul className="space-y-3">
+          <div className="col-span-2 md:col-span-1 lg:col-span-1">
+            <h3 className="text-white font-bold mb-3 md:mb-4">Contact Us</h3>
+            <ul className="space-y-2 md:space-y-3">
               <li className="flex items-start space-x-2 text-[#94A3B8] text-sm">
                 <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
                 <span>123 Mountain Road, Dehradun, Uttarakhand 248001</span>
@@ -78,7 +78,7 @@ const Footer = () => {
                 <span>hello@trailvista.com</span>
               </li>
             </ul>
-            <div className="mt-6">
+            <div className="mt-4 md:mt-6">
               <h4 className="text-white font-semibold text-sm mb-2">Newsletter</h4>
               <div className="flex">
                 <input 
@@ -96,8 +96,8 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-white/10 pt-8 mt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <div className="border-t border-white/10 pt-6 mt-6 md:pt-8 md:mt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
             <p className="text-[#94A3B8] text-sm">
               © 2026 TrailVista Expeditions. All rights reserved.
             </p>

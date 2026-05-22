@@ -35,7 +35,7 @@ const Gallery = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <h1 className="text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
             EXPEDITION <span className="text-[#38BDF8]">GALLERY</span>
           </h1>
           <p className="text-[#94A3B8] text-lg">Moments captured from our Himalayan adventures</p>
@@ -60,7 +60,7 @@ const Gallery = () => {
         </div>
 
         {/* Masonry Grid */}
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
           {filteredImages.map((image, index) => (
             <motion.div
               key={index}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
+import HorizontalScrollSection from '../components/HorizontalScrollSection';
 import { reviews } from '../data/treksData';
 
 const Reviews = () => {
@@ -50,7 +51,7 @@ const Reviews = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <h1 className="text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
             TREKKER <span className="text-[#38BDF8]">REVIEWS</span>
           </h1>
           <p className="text-[#94A3B8] text-lg">What our adventurers say about their experiences</p>
@@ -74,7 +75,37 @@ const Reviews = () => {
         </div>
 
         {/* Reviews Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Mobile: horizontal swipe */}
+        <HorizontalScrollSection>
+          {allReviews.map((review) => (
+            <motion.div
+              key={review.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-[#071827] border border-white/10 rounded-2xl p-5 h-full"
+            >
+              <div className="flex space-x-1 mb-3">
+                {[...Array(review.rating)].map((_, i) => (
+                  <Star key={i} className="h-4 w-4 fill-[#F97316] text-[#F97316]" />
+                ))}
+              </div>
+              <p className="text-[#94A3B8] text-sm leading-relaxed mb-4">
+                "{review.review}"
+              </p>
+              <div className="flex items-center space-x-3 pt-4 border-t border-white/10">
+                <img src={review.image} alt={review.name} className="w-10 h-10 rounded-full object-cover" />
+                <div>
+                  <p className="text-white font-bold text-sm">{review.name}</p>
+                  <p className="text-[#38BDF8] text-xs">{review.trek}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </HorizontalScrollSection>
+
+        {/* Desktop: normal grid */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {allReviews.map((review) => (
             <motion.div
               key={review.id}
@@ -97,8 +128,8 @@ const Reviews = () => {
 
               {/* Reviewer Info */}
               <div className="flex items-center space-x-4 pt-6 border-t border-white/10">
-                <img 
-                  src={review.image} 
+                <img
+                  src={review.image}
                   alt={review.name}
                   className="w-12 h-12 rounded-full object-cover"
                 />
@@ -106,9 +137,9 @@ const Reviews = () => {
                   <p className="text-white font-bold">{review.name}</p>
                   <p className="text-[#38BDF8] text-sm">{review.trek}</p>
                   <p className="text-[#94A3B8] text-xs mt-1">
-                    {new Date(review.date).toLocaleDateString('en-IN', { 
-                      month: 'short', 
-                      year: 'numeric' 
+                    {new Date(review.date).toLocaleDateString('en-IN', {
+                      month: 'short',
+                      year: 'numeric'
                     })}
                   </p>
                 </div>

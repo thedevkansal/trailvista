@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { SlidersHorizontal } from 'lucide-react';
 import TrekCard from '../components/TrekCard';
+import HorizontalScrollSection from '../components/HorizontalScrollSection';
 import { treks } from '../data/treksData';
 
 const AllTreks = () => {
@@ -19,13 +20,7 @@ const AllTreks = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    if (location.state?.filters) {
-      applyFilters(location.state.filters);
-    }
-  }, [location.state]);
-
-  const applyFilters = (newFilters) => {
+  const applyFilters = useCallback((newFilters) => {
     let filtered = [...treks];
 
     // Apply filters
@@ -46,7 +41,13 @@ const AllTreks = () => {
     }
 
     setFilteredTreks(filtered);
-  };
+  }, [sortBy]);
+
+  useEffect(() => {
+    if (location.state?.filters) {
+      applyFilters(location.state.filters);
+    }
+  }, [location.state, applyFilters]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -69,7 +70,7 @@ const AllTreks = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <h1 className="text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
             ALL <span className="text-[#38BDF8]">TREKS</span>
           </h1>
           <p className="text-[#94A3B8] text-lg">Discover your next Himalayan adventure</p>
@@ -213,7 +214,15 @@ const AllTreks = () => {
         </div>
 
         {/* Trek Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Mobile: horizontal swipe */}
+        <HorizontalScrollSection>
+          {filteredTreks.map((trek) => (
+            <TrekCard key={trek.id} trek={trek} />
+          ))}
+        </HorizontalScrollSection>
+
+        {/* Desktop: normal grid */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredTreks.map((trek) => (
             <TrekCard key={trek.id} trek={trek} />
           ))}

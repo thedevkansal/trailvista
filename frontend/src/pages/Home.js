@@ -11,6 +11,7 @@ import TrekCard from '../components/TrekCard';
 import GalleryMarquee from '../components/GalleryMarquee';
 import ReviewMarquee from '../components/ReviewMarquee';
 import AffiliationsStrip from '../components/AffiliationsStrip';
+import HorizontalScrollSection from '../components/HorizontalScrollSection';
 import { treks, reviews, blogPosts, categories } from '../data/treksData';
 
 const Home = () => {
@@ -44,9 +45,32 @@ const Home = () => {
       />
 
       {/* Trust Stats - Floating Cards (positioned below hero, not overlapping) */}
-      <div className="relative z-20 px-4 pt-12 pb-4">
+      <div className="relative z-20 px-4 pt-8 pb-4">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Mobile: horizontal swipe row */}
+          <div
+            className="md:hidden flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 pb-2 -mx-0"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            {[
+              { label: 'Happy Trekkers', value: '25K+' },
+              { label: 'Departures Annually', value: '120+' },
+              { label: 'Rated Experience', value: '4.9' },
+            ].map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + i * 0.1 }}
+                className="snap-start flex-shrink-0 w-[72vw] sm:w-[48vw] backdrop-blur-xl bg-[#071827]/80 border border-white/10 rounded-2xl p-5 text-center"
+              >
+                <p className="text-3xl font-black text-[#38BDF8] hero-text mb-2">{stat.value}</p>
+                <p className="text-[#94A3B8] text-sm">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
+          {/* Desktop: normal grid */}
+          <div className="hidden md:grid md:grid-cols-3 gap-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -89,27 +113,35 @@ const Home = () => {
       </section>
 
       {/* Popular Treks */}
-      <section className="py-24">
+      <section className="py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-10 sm:mb-12"
           >
             <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">Featured Adventures</p>
-            <h2 className="text-4xl md:text-5xl font-black text-white hero-text uppercase mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white hero-text uppercase mb-6">
               POPULAR <span className="text-[#38BDF8]">EXPEDITIONS</span>
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Mobile: horizontal swipe */}
+          <HorizontalScrollSection>
+            {popularTreks.map((trek) => (
+              <TrekCard key={trek.id} trek={trek} />
+            ))}
+          </HorizontalScrollSection>
+
+          {/* Desktop: normal grid */}
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {popularTreks.map((trek) => (
               <TrekCard key={trek.id} trek={trek} />
             ))}
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-10 sm:mt-12">
             <button
               onClick={() => navigate('/treks')}
               className="bg-[#38BDF8] hover:bg-[#0ea5e9] text-white px-8 py-3 rounded-full font-semibold transition-all active:scale-95"
@@ -136,7 +168,43 @@ const Home = () => {
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {/* Mobile: horizontal swipe */}
+          <HorizontalScrollSection>
+            {categories.slice(0, 8).map((category, index) => {
+              const icons = {
+                'Footprints': Mountain,
+                'Snowflake': Snowflake,
+                'Sun': Sun,
+                'Calendar': Calendar,
+                'Mountain': Mountain,
+                'TrendingUp': TrendingUp,
+                'Flag': MapPin,
+                'Users': Users
+              };
+              const IconComponent = icons[category.icon] || Mountain;
+
+              return (
+                <motion.div
+                  key={category.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                  onClick={() => navigate(`/categories/${category.id}`)}
+                  className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center hover:border-[#38BDF8]/30 transition-all hover:-translate-y-2 cursor-pointer h-full"
+                >
+                  <div className="w-12 h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <IconComponent className="h-6 w-6 text-[#38BDF8]" />
+                  </div>
+                  <h3 className="text-white font-bold mb-2 text-base">{category.name}</h3>
+                  <p className="text-[#94A3B8] text-sm">{category.count} treks</p>
+                </motion.div>
+              );
+            })}
+          </HorizontalScrollSection>
+
+          {/* Desktop: normal grid */}
+          <div className="hidden md:grid md:grid-cols-2 md:grid-cols-4 gap-6">
             {categories.slice(0, 8).map((category, index) => {
               const icons = {
                 'Footprints': Mountain,
@@ -187,7 +255,35 @@ const Home = () => {
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Mobile: horizontal swipe */}
+          <HorizontalScrollSection>
+            {[
+              { icon: Award, title: 'Certified Trek Leaders', desc: 'Experienced guides with mountaineering certifications and first-aid training' },
+              { icon: DollarSign, title: 'Transparent Pricing', desc: 'No hidden costs. All-inclusive pricing with detailed breakdowns' },
+              { icon: Shield, title: 'Safety-First Protocol', desc: 'Comprehensive safety measures including oxygen support and emergency evacuation' },
+              { icon: Calendar, title: 'Fixed Departures', desc: 'Regular departure dates with guaranteed trips for hassle-free planning' },
+              { icon: MapPin, title: 'Local Expertise', desc: 'Deep knowledge of terrain, weather, and local culture for authentic experiences' },
+              { icon: Users, title: 'Custom Group Trips', desc: 'Tailored itineraries for corporate teams, families, and private groups' }
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-[#071827] border border-white/10 rounded-2xl p-6 h-full"
+              >
+                <div className="w-14 h-14 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mb-4">
+                  <item.icon className="h-7 w-7 text-[#38BDF8]" />
+                </div>
+                <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
+                <p className="text-[#94A3B8] text-sm leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </HorizontalScrollSection>
+
+          {/* Desktop: normal grid */}
+          <div className="hidden md:grid md:grid-cols-3 gap-8">
             {[
               { icon: Award, title: 'Certified Trek Leaders', desc: 'Experienced guides with mountaineering certifications and first-aid training' },
               { icon: DollarSign, title: 'Transparent Pricing', desc: 'No hidden costs. All-inclusive pricing with detailed breakdowns' },
@@ -230,7 +326,34 @@ const Home = () => {
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          {/* Mobile: horizontal swipe */}
+          <HorizontalScrollSection>
+            {[
+              { label: 'Oxygen Support', icon: Heart },
+              { label: 'First-Aid Kits', icon: Shield },
+              { label: 'Weather Monitoring', icon: Thermometer },
+              { label: 'Emergency Evacuation', icon: Award },
+              { label: 'Certified Guides', icon: Users },
+              { label: 'Small Group Control', icon: TrendingUp }
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center h-full"
+              >
+                <div className="w-12 h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <item.icon className="h-6 w-6 text-[#38BDF8]" />
+                </div>
+                <p className="text-white text-sm font-semibold">{item.label}</p>
+              </motion.div>
+            ))}
+          </HorizontalScrollSection>
+
+          {/* Desktop: normal grid */}
+          <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-6 gap-6">
             {[
               { label: 'Oxygen Support', icon: Heart },
               { label: 'First-Aid Kits', icon: Shield },
@@ -274,21 +397,46 @@ const Home = () => {
       <ReviewMarquee reviews={reviews} />
 
       {/* Blog Preview */}
-      <section className="py-24">
+      <section className="py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-10 sm:mb-12"
           >
             <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">Knowledge Hub</p>
-            <h2 className="text-4xl md:text-5xl font-black text-white hero-text uppercase mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white hero-text uppercase mb-6">
               TREK <span className="text-[#38BDF8]">GUIDES</span>
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Mobile: horizontal swipe */}
+          <HorizontalScrollSection>
+            {blogPosts.map((post) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                onClick={() => navigate('/blog')}
+                className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden hover:border-[#38BDF8]/30 transition-all hover:-translate-y-2 cursor-pointer h-full"
+              >
+                <div className="h-48 overflow-hidden">
+                  <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+                </div>
+                <div className="p-5">
+                  <span className="text-[#38BDF8] text-xs font-bold uppercase tracking-wider">{post.category}</span>
+                  <h3 className="text-white font-bold text-base mt-2 mb-2">{post.title}</h3>
+                  <p className="text-[#94A3B8] text-sm mb-3 line-clamp-2">{post.excerpt}</p>
+                  <p className="text-[#94A3B8] text-xs">{new Date(post.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                </div>
+              </motion.div>
+            ))}
+          </HorizontalScrollSection>
+
+          {/* Desktop: normal grid */}
+          <div className="hidden md:grid md:grid-cols-3 gap-8">
             {blogPosts.map((post) => (
               <motion.div
                 key={post.id}
@@ -311,7 +459,7 @@ const Home = () => {
             ))}
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-10 sm:mt-12">
             <button
               onClick={() => navigate('/blog')}
               className="border border-white/30 hover:border-[#38BDF8] text-white px-8 py-3 rounded-full font-semibold transition-all active:scale-95"
@@ -343,7 +491,7 @@ const Home = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-5xl md:text-6xl font-black text-white hero-text uppercase mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white hero-text uppercase mb-6">
               READY TO WALK <span className="text-[#38BDF8]">ABOVE THE CLOUDS?</span>
             </h2>
             <p className="text-[#94A3B8] text-lg mb-8 max-w-2xl mx-auto">
