@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, Calendar, TrendingUp, Mountain, Users, Shield, 
-  Download, MessageCircle, ChevronDown, Check, X, Clock
+  Download, MessageCircle, ChevronDown, Check, X, Clock, ShieldAlert
 } from 'lucide-react';
 import EnquiryModal from '../components/EnquiryModal';
 import { treks, reviews as allReviews } from '../data/treksData';
 import { useAuth } from '../context/AuthContext';
+import { loadRazorpay } from '../lib/loadRazorpay';
+import {
+  createPaymentOrder,
+  verifyPayment,
+  openRazorpayCheckout,
+  AuthRequiredError,
+  VERIFY_FAILED_MESSAGE,
+} from '../lib/paymentService';
 
 const TrekDetail = () => {
   const { id } = useParams();
@@ -16,6 +24,10 @@ const TrekDetail = () => {
   const { user } = useAuth();
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState(null);
+  const [bookingSuccess, setBookingSuccess] = useState(null);
+  const [showBookingDialog, setShowBookingDialog] = useState(false);
   
   const trek = treks.find(t => t.id === id);
   
@@ -33,6 +45,66 @@ const TrekDetail = () => {
   }
 
   const trekReviews = allReviews.filter(r => r.trek === trek.name);
+
+  const handleBookNow = async () => {
+    setPaymentError(null);
+    setBookingSuccess(null);
+    setShowBookingDialog(false);
+    setPaymentLoading(true);
+
+    try {
+      await loadRazorpay();
+      const order = await createPaymentOrder({ trekId: trek.id });
+
+      openRazorpayCheckout({
+        order,
+        trek,
+        user,
+        onVerified: async (response) => {
+          try {
+            setPaymentLoading(true);
+            const result = await verifyPayment({
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+              trekId: trek.id,
+              amount: trek.price,
+              userEmail: user?.email,
+              customerName: user?.profile?.full_name || user?.user_metadata?.full_name,
+            });
+            if (!result?.success) {
+              throw new Error(VERIFY_FAILED_MESSAGE);
+            }
+            setBookingSuccess(result);
+            setShowBookingDialog(true);
+            setPaymentError(null);
+          } catch (err) {
+            if (err instanceof AuthRequiredError) {
+              navigate('/login', { state: { from: location.pathname } });
+              return;
+            }
+            setPaymentError(VERIFY_FAILED_MESSAGE);
+            setShowBookingDialog(false);
+          } finally {
+            setPaymentLoading(false);
+          }
+        },
+        onError: (err) => {
+          setPaymentError(err.message || 'Payment failed.');
+          setPaymentLoading(false);
+        },
+      });
+    } catch (err) {
+      if (err instanceof AuthRequiredError) {
+        setPaymentError(err.message);
+        navigate('/login', { state: { from: location.pathname } });
+        return;
+      }
+      setPaymentError(err.message || 'Could not start payment.');
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
 
   const itinerary = [
     { day: 1, title: 'Arrival and Base Camp', description: `Arrive at the base location. Complete registration and briefing. Check equipment and meet your trek leader and group.` },
@@ -294,19 +366,38 @@ const TrekDetail = () => {
                 </div>
               )}
 
+              <AnimatePresence mode="wait">
+                {paymentError && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm flex items-start space-x-2"
+                  >
+                    <ShieldAlert className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                    <span>{paymentError}</span>
+                  </motion.div>
+                )}
+                {bookingSuccess && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm"
+                  >
+                    <p className="font-bold text-white mb-1">Booking confirmed!</p>
+                    <p>{bookingSuccess.message || 'Your trek booking is confirmed.'}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="space-y-3">
                 <button 
-                  onClick={() => {
-                    if (!user) {
-                      navigate('/signup', { state: { from: location.pathname } });
-                    } else {
-                      setEnquiryOpen(true);
-                    }
-                  }}
-                  className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3 rounded-lg font-bold transition-all active:scale-95"
+                  onClick={handleBookNow}
+                  disabled={paymentLoading || !!bookingSuccess}
+                  className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3 rounded-lg font-bold transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
                   data-testid="trek-detail-book-now"
                 >
-                  Book Now
+                  {paymentLoading ? 'Processing...' : bookingSuccess ? 'Booked' : 'Book Now'}
                 </button>
                 <button 
                   onClick={() => {
@@ -360,6 +451,46 @@ const TrekDetail = () => {
         onClose={() => setEnquiryOpen(false)} 
         trekName={trek.name}
       />
+
+      <AnimatePresence>
+        {showBookingDialog && bookingSuccess && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4"
+            onClick={() => setShowBookingDialog(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="max-w-md w-full bg-[#071827] border border-green-500/30 rounded-2xl p-8 text-center shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mx-auto w-14 h-14 bg-green-500/10 border border-green-500/30 rounded-full flex items-center justify-center mb-4">
+                <Check className="h-7 w-7 text-green-400" />
+              </div>
+              <h2 className="text-2xl font-black text-white mb-2">Thank You!</h2>
+              <p className="text-lg font-bold text-[#38BDF8] mb-3">Booking Confirmed</p>
+              <p className={`text-[#94A3B8] text-sm ${bookingSuccess.email_sent ? 'mb-2' : 'mb-6'}`}>
+                {bookingSuccess.message || `Your booking for ${trek.name} is confirmed.`}
+              </p>
+              {bookingSuccess.email_sent && bookingSuccess.email_to && (
+                <p className="text-[#94A3B8] text-sm mb-6">
+                  Confirmation email sent to {bookingSuccess.email_to}
+                </p>
+              )}
+              <button
+                onClick={() => setShowBookingDialog(false)}
+                className="w-full bg-[#38BDF8] hover:bg-[#0ea5e9] text-white px-6 py-3 rounded-lg font-bold text-sm transition-all"
+              >
+                Done
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
