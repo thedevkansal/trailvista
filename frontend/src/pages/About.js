@@ -149,19 +149,19 @@ const About = () => {
               { 
                 name: 'Rajesh Kumar', 
                 role: 'Founder & Lead Expedition Guide', 
-                image: 'https://images.unsplash.com/photo-1527004013197-933c4bb611b3?auto=format&fit=crop&q=80&w=800',
+                image: '/team/rajesh.jpg',
                 bio: '80+ high-altitude Himalayan summits, certified Wilderness First Responder.'
               },
               { 
                 name: 'Priya Sharma', 
                 role: 'Operations Head', 
-                image: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&q=80&w=800',
+                image: '/team/priya.jpg',
                 bio: 'Expedition safety manager & regional community outreach director.'
               },
               { 
                 name: 'Vikram Singh', 
                 role: 'Senior Trek Leader', 
-                image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&q=80&w=800',
+                image: '/team/vikram.jpg',
                 bio: '12 years of guiding experience on frozen winter Zanskar trails.'
               }
             ].map((member, index) => (
@@ -190,19 +190,19 @@ const About = () => {
               { 
                 name: 'Rajesh Kumar', 
                 role: 'Founder & Lead Expedition Guide', 
-                image: 'https://images.unsplash.com/photo-1527004013197-933c4bb611b3?auto=format&fit=crop&q=80&w=800',
+                image: '/team/rajesh.jpg',
                 bio: '80+ high-altitude Himalayan summits, certified Wilderness First Responder.'
               },
               { 
                 name: 'Priya Sharma', 
                 role: 'Operations Head', 
-                image: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&q=80&w=800',
+                image: '/team/priya.jpg',
                 bio: 'Expedition safety manager & regional community outreach director.'
               },
               { 
                 name: 'Vikram Singh', 
                 role: 'Senior Trek Leader', 
-                image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&q=80&w=800',
+                image: '/team/vikram.jpg',
                 bio: '12 years of guiding experience on frozen winter Zanskar trails.'
               }
             ].map((member, index) => (
