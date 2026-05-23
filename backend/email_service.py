@@ -4,8 +4,15 @@ import os
 import smtplib
 from email.message import EmailMessage
 from typing import Any
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Ensure environment variables are loaded immediately on import
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / ".env", override=True)
 
 logger = logging.getLogger(__name__)
+
 
 
 def _smtp_configured() -> bool:
@@ -57,6 +64,7 @@ def _build_email_content(booking_details: dict[str, Any]) -> tuple[str, str, str
     order_id = booking_details.get("razorpay_order_id", "—")
     payment_id = booking_details.get("razorpay_payment_id", "—")
     booking_status = booking_details.get("booking_status", "confirmed")
+    departure_date = booking_details.get("departure_date") or "—"
     payment_status = booking_details.get("payment_status", "paid")
     booked_at = booking_details.get("booked_at", "—")
 
@@ -76,6 +84,7 @@ BOOKING SUMMARY
 Status:          {booking_status.title()}
 Payment status:  {payment_status.title()}
 Trek:            {trek_line}
+Departure Date:  {departure_date}
 Amount paid:     {amount_display}
 Currency:        {currency}
 Booked at:       {booked_at}
@@ -151,6 +160,10 @@ Himalayan trekking & expeditions
                 <tr>
                   <td style="padding:12px 20px;font-size:13px;color:#64748b;width:42%;border-bottom:1px solid #f1f5f9;">Trek</td>
                   <td style="padding:12px 20px;font-size:14px;font-weight:600;color:#0f172a;border-bottom:1px solid #f1f5f9;">{_esc(trek_line)}</td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 20px;font-size:13px;color:#64748b;border-bottom:1px solid #f1f5f9;">Departure Date</td>
+                  <td style="padding:12px 20px;font-size:14px;font-weight:600;color:#0f172a;border-bottom:1px solid #f1f5f9;">{_esc(departure_date)}</td>
                 </tr>
                 <tr>
                   <td style="padding:12px 20px;font-size:13px;color:#64748b;border-bottom:1px solid #f1f5f9;">Amount paid</td>
@@ -250,10 +263,10 @@ def send_booking_confirmation_email(to_email: str, booking_details: dict[str, An
     """Send booking confirmation email. Never raises — returns True on success."""
     recipient = to_email.strip() if to_email else ""
     if not recipient:
-        logger.warning("booking confirmation email skipped: empty recipient")
+        logger.warning("Booking confirmation skipped: no recipient email found.")
         return False
 
-    logger.info("booking confirmation email sending started to=%s", recipient)
+    logger.info("Booking confirmation email queued/sending to: %s", recipient)
 
     if not _smtp_configured():
         logger.error("booking confirmation email failed to=%s reason=SMTP_NOT_CONFIGURED", recipient)
@@ -273,8 +286,8 @@ def send_booking_confirmation_email(to_email: str, booking_details: dict[str, An
         message.add_alternative(html_body, subtype="html", charset="utf-8")
 
         _send_message(message, from_email, recipient)
-        logger.info("booking confirmation email sent successfully to=%s", recipient)
+        logger.info("Booking confirmation email sent successfully")
         return True
     except Exception as exc:
-        logger.error("booking confirmation email failed to=%s error=%s", recipient, exc)
+        logger.error("Booking confirmation email failed: %s", exc)
         return False

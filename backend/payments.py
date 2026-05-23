@@ -2,11 +2,18 @@ import hashlib
 import hmac
 import logging
 import os
+from pathlib import Path
 from typing import Any, Optional
+
+from dotenv import load_dotenv
+
+# Ensure environment variables are loaded immediately on import
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / ".env", override=True)
 
 import razorpay
 import requests
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 
 from email_service import send_booking_confirmation_email
@@ -161,6 +168,13 @@ class VerifyPaymentRequest(BaseModel):
     amount: Optional[float] = None
     user_email: Optional[str] = None
     customer_name: Optional[str] = None
+    departure_date: Optional[str] = None
+
+
+class TestEmailRequest(BaseModel):
+    recipient_email: str
+    trek_id: str = "kedarkantha-trek"
+    departure_date: Optional[str] = "2026-10-15"
 
 
 def _booking_email_details(
@@ -168,6 +182,7 @@ def _booking_email_details(
     trek_id: str,
     user_email: Optional[str],
     customer_name: Optional[str],
+    departure_date: Optional[str] = None,
 ) -> dict[str, Any]:
     booked_at = booking.get("created_at") or ""
     return {
@@ -182,6 +197,7 @@ def _booking_email_details(
         "booking_status": booking.get("booking_status"),
         "payment_status": booking.get("payment_status"),
         "booked_at": booked_at,
+        "departure_date": departure_date,
     }
 
 
@@ -190,34 +206,18 @@ def _send_confirmation_email_safe(
     trek_id: str,
     user_email: Optional[str],
     customer_name: Optional[str],
+    departure_date: Optional[str] = None,
 ) -> bool:
     if not user_email:
-        logger.info("booking confirmation email skipped: no user_email")
+        logger.warning("Booking confirmation skipped: no recipient email found.")
         return False
-    details = _booking_email_details(booking, trek_id, user_email, customer_name)
+    details = _booking_email_details(booking, trek_id, user_email, customer_name, departure_date)
     email_sent = send_booking_confirmation_email(user_email, details)
     if email_sent:
         logger.info("booking confirmation email_sent=true to=%s", user_email)
     else:
         logger.warning("booking confirmation email_sent=false to=%s", user_email)
     return email_sent
-
-
-def _verify_success_response(
-    booking: dict[str, Any],
-    message: str,
-    trek_id: str,
-    user_email: Optional[str],
-    customer_name: Optional[str],
-) -> dict[str, Any]:
-    email_sent = _send_confirmation_email_safe(booking, trek_id, user_email, customer_name)
-    return {
-        "success": True,
-        "booking": booking,
-        "message": message,
-        "email_sent": email_sent,
-        "email_to": user_email if email_sent else None,
-    }
 
 
 def verify_razorpay_signature(order_id: str, payment_id: str, signature: str, secret: str) -> bool:
@@ -362,14 +362,16 @@ async def create_order(body: CreateOrderRequest, user_id: str = Depends(get_curr
 @payments_router.post("/verify")
 async def verify_payment(
     body: VerifyPaymentRequest,
+    background_tasks: BackgroundTasks,
     user: dict[str, Any] = Depends(get_current_user)
 ):
     user_id = user["id"]
     jwt_email = user.get("email")
     jwt_name = user.get("user_metadata", {}).get("full_name")
 
-    user_email = body.user_email or jwt_email
-    customer_name = body.customer_name or jwt_name
+    # Priority resolution of customer email
+    recipient_email = body.user_email or jwt_email
+    resolved_customer_name = body.customer_name or jwt_name
 
     logger.info(
         "verify request received: service_role_present=%s trek_id=%s payment_id=%s user_id=%s user_email=%s",
@@ -377,7 +379,7 @@ async def verify_payment(
         body.trek_id,
         body.razorpay_payment_id,
         user_id,
-        user_email,
+        recipient_email,
     )
 
     if _missing_env():
@@ -402,15 +404,40 @@ async def verify_payment(
 
     logger.info("Razorpay signature valid for payment_id=%s", body.razorpay_payment_id)
 
+    # Fetch customer details from Razorpay as fallback if email is still missing
+    if not recipient_email and body.razorpay_payment_id:
+        try:
+            client = get_razorpay_client()
+            payment_info = client.payment.fetch(body.razorpay_payment_id)
+            if payment_info and isinstance(payment_info, dict):
+                recipient_email = payment_info.get("email")
+                if not resolved_customer_name:
+                    resolved_customer_name = payment_info.get("notes", {}).get("name") or payment_info.get("email", "").split("@")[0]
+                logger.info("Resolved email from Razorpay payment record: %s", recipient_email)
+        except Exception as exc:
+            logger.warning("Failed to fetch payment details from Razorpay: %s", exc)
+
+    if not recipient_email:
+        logger.warning("Booking confirmation skipped: no recipient email found.")
+
     existing = _find_booking_by_payment_id(body.razorpay_payment_id)
     if existing:
-        return _verify_success_response(
-            existing,
-            "Booking already confirmed.",
-            body.trek_id,
-            user_email,
-            customer_name,
-        )
+        if recipient_email:
+            background_tasks.add_task(
+                _send_confirmation_email_safe,
+                existing,
+                body.trek_id,
+                recipient_email,
+                resolved_customer_name,
+                body.departure_date,
+            )
+        return {
+            "success": True,
+            "booking": existing,
+            "message": "Booking already confirmed.",
+            "email_sent": bool(recipient_email),
+            "email_to": recipient_email,
+        }
 
     booking_row = {
         "user_id": user_id,
@@ -424,10 +451,49 @@ async def verify_payment(
     }
 
     booking = _insert_booking(booking_row)
-    return _verify_success_response(
-        booking,
-        "Booking confirmed successfully.",
+    if recipient_email:
+        background_tasks.add_task(
+            _send_confirmation_email_safe,
+            booking,
+            body.trek_id,
+            recipient_email,
+            resolved_customer_name,
+            body.departure_date,
+        )
+    return {
+        "success": True,
+        "booking": booking,
+        "message": "Booking confirmed successfully.",
+        "email_sent": bool(recipient_email),
+        "email_to": recipient_email,
+    }
+
+
+@payments_router.post("/debug/send-test-email")
+async def send_test_email(body: TestEmailRequest):
+    if os.environ.get("DEBUG_EMAIL_TEST") != "true":
+        raise HTTPException(status_code=403, detail="Debug endpoints are disabled.")
+    
+    mock_booking = {
+        "created_at": "2026-05-23T12:00:00Z",
+        "amount": TREK_PRICES.get(body.trek_id, 8500.0),
+        "currency": "INR",
+        "razorpay_order_id": "order_debug123",
+        "razorpay_payment_id": "pay_debug123",
+        "booking_status": "confirmed",
+        "payment_status": "paid",
+    }
+    
+    details = _booking_email_details(
+        mock_booking,
         body.trek_id,
-        user_email,
-        customer_name,
+        body.recipient_email,
+        "Debug User",
+        body.departure_date
     )
+    
+    success = send_booking_confirmation_email(body.recipient_email, details)
+    if success:
+        return {"success": True, "message": f"Test email sent successfully to {body.recipient_email}."}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to send test email. Check server logs.")

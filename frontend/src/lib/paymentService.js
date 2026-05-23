@@ -75,6 +75,7 @@ export async function verifyPayment({
   amount,
   userEmail,
   customerName,
+  departureDate,
 }) {
   try {
     return await apiPost(
@@ -87,6 +88,7 @@ export async function verifyPayment({
         amount,
         user_email: userEmail,
         customer_name: customerName,
+        departure_date: departureDate,
       },
       VERIFY_FAILED_MESSAGE
     );

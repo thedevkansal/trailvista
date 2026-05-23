@@ -134,6 +134,7 @@ const TrekDetail = () => {
               amount: trek.price,
               userEmail: user?.email,
               customerName: user?.profile?.full_name || user?.user_metadata?.full_name,
+              departureDate: selectedDate,
             });
             if (!result?.success) {
               throw new Error(VERIFY_FAILED_MESSAGE);
