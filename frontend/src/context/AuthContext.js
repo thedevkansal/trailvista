@@ -153,13 +153,9 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Too many signup attempts. Please wait a few minutes before trying again.');
       }
       if (errMsg.toLowerCase().includes('already registered') || errMsg.toLowerCase().includes('already exists')) {
-        throw new Error('This email is already registered. Please log in instead.');
+        throw new Error('Account already exists. Please log in.');
       }
       throw new Error(error.message || 'Failed to sign up.');
-    }
-
-    if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
-      throw new Error('This email is already registered. Please log in instead.');
     }
 
     if (data?.session && data?.user?.id) {

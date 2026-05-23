@@ -92,24 +92,41 @@ const Signup = () => {
         travelStyle: travelStyle || null,
       });
 
-      // If email confirmation is enabled, session will be null on signup
-      if (!signupData?.session) {
-        setSignupSuccess(true);
+      // If identities is empty, it means the user already exists in the database.
+      const isExistingUser = signupData?.user && (!signupData.user.identities || signupData.user.identities.length === 0);
+
+      if (isExistingUser) {
+        setError('Account already exists. Please log in.');
+        setTimeout(() => {
+          navigate('/login', {
+            state: {
+              email,
+              message: 'Account already exists. Please log in.'
+            }
+          });
+        }, 3000);
       } else {
-        navigate(redirectPath, { replace: true });
+        // If email confirmation is enabled, session will be null on signup
+        if (!signupData?.session) {
+          setSignupSuccess(true);
+        } else {
+          navigate(redirectPath, { replace: true });
+        }
       }
     } catch (err) {
       const errMsg = err.message || 'Failed to sign up.';
-      setError(errMsg);
       if (errMsg.includes('already registered') || errMsg.includes('already exists')) {
+        setError('Account already exists. Please log in.');
         setTimeout(() => {
           navigate('/login', { 
             state: { 
               email, 
-              message: 'This email is already registered. Please log in instead.' 
+              message: 'Account already exists. Please log in.' 
             } 
           });
         }, 3000);
+      } else {
+        setError(errMsg);
       }
     } finally {
       setLoading(false);
