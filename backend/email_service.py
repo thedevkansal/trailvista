@@ -7,10 +7,6 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-SUPPORT_EMAIL = os.environ.get("SMTP_SUPPORT_EMAIL", "support@trailvista.com")
-SUPPORT_PHONE = os.environ.get("SMTP_SUPPORT_PHONE", "+91 98765 43210")
-BRAND_SITE = os.environ.get("TRAILVISTA_SITE_URL", "https://trailvista.com")
-
 
 def _smtp_configured() -> bool:
     required = ("SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM_EMAIL")
@@ -44,6 +40,10 @@ def _trek_label(booking_details: dict[str, Any]) -> str:
 
 
 def _build_email_content(booking_details: dict[str, Any]) -> tuple[str, str, str]:
+    SUPPORT_EMAIL = os.environ.get("SMTP_SUPPORT_EMAIL", "support@trailvista.com")
+    SUPPORT_PHONE = os.environ.get("SMTP_SUPPORT_PHONE", "+91 98765 43210")
+    BRAND_SITE = os.environ.get("TRAILVISTA_SITE_URL", "https://trailvista.com")
+
     customer_name = booking_details.get("customer_name") or "Explorer"
     customer_email = booking_details.get("customer_email", "")
     trek_name = booking_details.get("trek_name") or ""
@@ -248,16 +248,19 @@ def _send_message(msg: EmailMessage, from_email: str, to_email: str) -> None:
 
 def send_booking_confirmation_email(to_email: str, booking_details: dict[str, Any]) -> bool:
     """Send booking confirmation email. Never raises — returns True on success."""
-    if not to_email or not to_email.strip():
+    recipient = to_email.strip() if to_email else ""
+    if not recipient:
         logger.warning("booking confirmation email skipped: empty recipient")
         return False
 
+    logger.info("booking confirmation email sending started to=%s", recipient)
+
     if not _smtp_configured():
+        logger.error("booking confirmation email failed to=%s reason=SMTP_NOT_CONFIGURED", recipient)
         return False
 
     from_email = os.environ["SMTP_FROM_EMAIL"]
     from_name = os.environ.get("SMTP_FROM_NAME", "TrailVista Expeditions")
-    recipient = to_email.strip()
 
     try:
         subject, text_body, html_body = _build_email_content(booking_details)
@@ -270,8 +273,8 @@ def send_booking_confirmation_email(to_email: str, booking_details: dict[str, An
         message.add_alternative(html_body, subtype="html", charset="utf-8")
 
         _send_message(message, from_email, recipient)
-        logger.info("booking confirmation email sent to=%s", recipient)
+        logger.info("booking confirmation email sent successfully to=%s", recipient)
         return True
     except Exception as exc:
-        logger.error("booking confirmation email failed to=%s error=%s", to_email, exc)
+        logger.error("booking confirmation email failed to=%s error=%s", recipient, exc)
         return False

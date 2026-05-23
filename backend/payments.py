@@ -91,7 +91,7 @@ def get_razorpay_client() -> razorpay.Client:
     return _razorpay_client
 
 
-def _verify_supabase_jwt(token: str) -> str:
+def _verify_supabase_jwt(token: str) -> dict[str, Any]:
     """Validate user JWT via Auth API (anon or service key as apikey only)."""
     supabase_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
     api_key = os.environ.get("SUPABASE_ANON_KEY") or _get_service_role_key()
@@ -118,13 +118,12 @@ def _verify_supabase_jwt(token: str) -> str:
         raise HTTPException(status_code=401, detail="Invalid or expired session.")
 
     user = response.json()
-    user_id = user.get("id")
-    if not user_id:
+    if not user or not user.get("id"):
         raise HTTPException(status_code=401, detail="Invalid or expired session.")
-    return user_id
+    return user
 
 
-async def get_current_user_id(authorization: Optional[str] = Header(None)) -> str:
+async def get_current_user(authorization: Optional[str] = Header(None)) -> dict[str, Any]:
     if not authorization or not authorization.startswith("Bearer "):
         logger.warning("Payment auth: missing or invalid Authorization header")
         raise HTTPException(status_code=401, detail="Authentication required.")
@@ -134,6 +133,11 @@ async def get_current_user_id(authorization: Optional[str] = Header(None)) -> st
         raise HTTPException(status_code=401, detail="Authentication required.")
 
     return _verify_supabase_jwt(token)
+
+
+async def get_current_user_id(authorization: Optional[str] = Header(None)) -> str:
+    user = await get_current_user(authorization)
+    return user["id"]
 
 
 class CreateOrderRequest(BaseModel):
@@ -356,13 +360,24 @@ async def create_order(body: CreateOrderRequest, user_id: str = Depends(get_curr
 
 
 @payments_router.post("/verify")
-async def verify_payment(body: VerifyPaymentRequest, user_id: str = Depends(get_current_user_id)):
+async def verify_payment(
+    body: VerifyPaymentRequest,
+    user: dict[str, Any] = Depends(get_current_user)
+):
+    user_id = user["id"]
+    jwt_email = user.get("email")
+    jwt_name = user.get("user_metadata", {}).get("full_name")
+
+    user_email = body.user_email or jwt_email
+    customer_name = body.customer_name or jwt_name
+
     logger.info(
-        "verify request received: service_role_present=%s trek_id=%s payment_id=%s user_id=%s",
+        "verify request received: service_role_present=%s trek_id=%s payment_id=%s user_id=%s user_email=%s",
         bool(os.environ.get("SUPABASE_SERVICE_ROLE_KEY")),
         body.trek_id,
         body.razorpay_payment_id,
         user_id,
+        user_email,
     )
 
     if _missing_env():
@@ -393,8 +408,8 @@ async def verify_payment(body: VerifyPaymentRequest, user_id: str = Depends(get_
             existing,
             "Booking already confirmed.",
             body.trek_id,
-            body.user_email,
-            body.customer_name,
+            user_email,
+            customer_name,
         )
 
     booking_row = {
@@ -413,6 +428,6 @@ async def verify_payment(body: VerifyPaymentRequest, user_id: str = Depends(get_
         booking,
         "Booking confirmed successfully.",
         body.trek_id,
-        body.user_email,
-        body.customer_name,
+        user_email,
+        customer_name,
     )

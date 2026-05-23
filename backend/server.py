@@ -22,6 +22,12 @@ print(f"  HAS SUPABASE_SERVICE_ROLE_KEY: {bool(os.getenv('SUPABASE_SERVICE_ROLE_
 print(f"  HAS RAZORPAY_KEY_ID: {bool(os.getenv('RAZORPAY_KEY_ID'))}")
 print(f"  HAS RAZORPAY_KEY_SECRET: {bool(os.getenv('RAZORPAY_KEY_SECRET'))}")
 print(f"  HAS CORS_ORIGINS: {bool(os.getenv('CORS_ORIGINS'))}")
+print(f"  HAS SMTP_HOST: {bool(os.getenv('SMTP_HOST'))}")
+print(f"  HAS SMTP_PORT: {bool(os.getenv('SMTP_PORT'))}")
+print(f"  HAS SMTP_USER: {bool(os.getenv('SMTP_USER'))}")
+print(f"  HAS SMTP_PASS: {bool(os.getenv('SMTP_PASS'))}")
+print(f"  HAS SMTP_FROM_EMAIL: {bool(os.getenv('SMTP_FROM_EMAIL'))}")
+print(f"  HAS SMTP_FROM_NAME: {bool(os.getenv('SMTP_FROM_NAME'))}")
 print("===================================")
 
 logging.basicConfig(
