@@ -56,13 +56,13 @@ const Navbar = () => {
         <div className="tv-navbar backdrop-blur-xl bg-[#020617]/80 border border-white/10 rounded-full px-4 py-2 sm:px-6 sm:py-3 shadow-2xl">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-3" data-testid="nav-logo-link">
+            <Link to="/" className="flex items-center space-x-2 sm:space-x-3" data-testid="nav-logo-link">
               <img
                 src="/logo.png"
                 alt="TrailVista Expeditions"
-                className="h-12 w-auto md:h-16 object-contain"
+                className="h-8 w-auto sm:h-10 object-contain"
               />
-              <span className="text-xl md:text-2xl font-extrabold tracking-wider hero-text tv-navbar-text">
+              <span className="text-lg sm:text-xl font-bold hero-text tv-navbar-text">
                 TRAILVI<span className="text-[#38BDF8]">STA</span>
               </span>
             </Link>
