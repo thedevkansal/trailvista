@@ -14,6 +14,12 @@
     --tv-surface: #071827;
     --tv-text: #F8FAFC;
     --tv-text-secondary: #94A3B8;
+    
+    /* Premium visual shadow tokens */
+    --tv-shadow-sm: 0 2px 8px -1px rgba(2, 6, 23, 0.3), 0 1px 3px -1px rgba(2, 6, 23, 0.2);
+    --tv-shadow-md: 0 4px 20px -2px rgba(2, 6, 23, 0.4), 0 2px 8px -2px rgba(2, 6, 23, 0.3);
+    --tv-shadow-lg: 0 10px 30px -10px rgba(2, 6, 23, 0.6), 0 2px 12px -4px rgba(2, 6, 23, 0.4);
+    --tv-shadow-xl: 0 20px 50px -12px rgba(2, 6, 23, 0.7), 0 4px 20px -6px rgba(2, 6, 23, 0.5);
 }
 
 .light-mode {
@@ -21,6 +27,12 @@
     --tv-surface: #F0F9FF;
     --tv-text: #0C4A6E;
     --tv-text-secondary: #0369A1;
+    
+    /* Light mode shadow tokens */
+    --tv-shadow-sm: 0 2px 8px -1px rgba(12, 74, 110, 0.08), 0 1px 3px -1px rgba(12, 74, 110, 0.04);
+    --tv-shadow-md: 0 4px 20px -2px rgba(12, 74, 110, 0.12), 0 2px 8px -2px rgba(12, 74, 110, 0.08);
+    --tv-shadow-lg: 0 10px 30px -10px rgba(12, 74, 110, 0.18), 0 2px 12px -4px rgba(12, 74, 110, 0.12);
+    --tv-shadow-xl: 0 20px 50px -12px rgba(12, 74, 110, 0.22), 0 4px 20px -6px rgba(12, 74, 110, 0.15);
 }
 
 body {
@@ -188,6 +200,60 @@ html { scroll-behavior: smooth; }
   display: none;
 }
 
+/* =========================================================
+   PREMIUM CUSTOM UI UTILITIES & TRANSITIONS
+   ========================================================= */
+
+/* Smooth, eased global transition utility */
+.tv-transition {
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Premium Card hover glow effect */
+.tv-card-glow {
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tv-card-glow:hover {
+    border-color: rgba(56, 189, 248, 0.25) !important;
+    box-shadow: 0 20px 40px -15px rgba(2, 6, 23, 0.5), 0 0 50px -10px rgba(56, 189, 248, 0.04);
+}
+.light-mode .tv-card-glow:hover {
+    border-color: rgba(2, 132, 199, 0.25) !important;
+    box-shadow: 0 20px 40px -15px rgba(12, 74, 110, 0.1), 0 0 50px -10px rgba(2, 132, 199, 0.05);
+}
+
+/* Focus styles for forms with subtle, elegant glow */
+input, select, textarea {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: #38BDF8 !important;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15) !important;
+    outline: none !important;
+}
+.light-mode input:focus, .light-mode select:focus, .light-mode textarea:focus {
+    border-color: #0284C7 !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
+    outline: none !important;
+}
+
+/* Premium micro-interactions for buttons */
+button, .btn {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+button:hover, .btn:hover {
+    filter: brightness(1.05);
+    box-shadow: 0 10px 25px -10px rgba(56, 189, 248, 0.3);
+}
+button:active, .btn:active {
+    transform: scale(0.97) !important;
+}
+
+/* Specific glowing action buttons (orange CTA) */
+.tv-btn-cta:hover {
+    box-shadow: 0 10px 25px -10px rgba(249, 115, 22, 0.45) !important;
+}
+
 @layer base {
     [data-debug-wrapper="true"] { display: contents !important; }
     [data-debug-wrapper="true"] > * {
@@ -202,5 +268,19 @@ html { scroll-behavior: smooth; }
         border-top-style: inherit; border-bottom-style: inherit;
         border-left-color: inherit; border-right-color: inherit;
         border-top-color: inherit; border-bottom-color: inherit;
+    }
+}
+
+/* Accessibility: prefers-reduced-motion support */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-delay: -1ms !important;
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        background-attachment: initial !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0s !important;
+        transition-delay: 0s !important;
+        transform: none !important;
     }
 }

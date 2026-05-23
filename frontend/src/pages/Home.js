@@ -52,66 +52,109 @@ const Home = () => {
         }}
       />
 
-      {/* Trust Stats - Floating Cards (positioned below hero, not overlapping) */}
-      <div className="relative z-20 px-4 pt-8 pb-4">
+      {/* Trust & Stats Section */}
+      <section className="relative z-20 px-4 pt-16 pb-8 bg-gradient-to-b from-[#020617] to-[#071827]/30">
         <div className="max-w-7xl mx-auto">
-          {/* Mobile: horizontal swipe row */}
-          <div
-            className="md:hidden flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 pb-2 -mx-0"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
-            {[
-              { label: 'Happy Trekkers', value: '25K+' },
-              { label: 'Departures Annually', value: '120+' },
-              { label: 'Rated Experience', value: '4.9' },
-            ].map((stat, i) => (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left Column: Stats Grid (lg:col-span-5) */}
+            <div className="lg:col-span-5 grid grid-cols-3 lg:grid-cols-1 gap-4">
+              {[
+                { label: 'Happy Trekkers', value: '25,000+' },
+                { label: 'Departures Annually', value: '120+' },
+                { label: 'Rated Experience', value: '4.9 / 5' },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="backdrop-blur-xl bg-[#071827]/60 border border-white/10 rounded-2xl p-5 sm:p-6 text-center lg:text-left shadow-lg hover:border-[#38BDF8]/20 transition-all duration-300"
+                >
+                  <p className="text-2xl sm:text-3xl font-black text-[#38BDF8] hero-text mb-1">{stat.value}</p>
+                  <p className="text-[#94A3B8] text-xs sm:text-sm font-medium">{stat.label}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Right Column: Brand Trust Pillars (lg:col-span-7) */}
+            <div className="lg:col-span-7 space-y-6">
               <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + i * 0.1 }}
-                className="snap-start flex-shrink-0 w-[72vw] sm:w-[48vw] backdrop-blur-xl bg-[#071827]/80 border border-white/10 rounded-2xl p-5 text-center"
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
               >
-                <p className="text-3xl font-black text-[#38BDF8] hero-text mb-2">{stat.value}</p>
-                <p className="text-[#94A3B8] text-sm">{stat.label}</p>
+                <span className="text-[#38BDF8] text-xs font-bold uppercase tracking-[0.25em]">Himalayan Pioneers</span>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white hero-text uppercase mt-2 mb-4">
+                  EXPEDITIONS ROOTED IN <span className="text-[#38BDF8]">TRUST & SAFETY</span>
+                </h2>
+                <p className="text-[#94A3B8] text-sm sm:text-base leading-relaxed mb-6 font-light">
+                  We don't offer generic tour packages. TrailVista designs production-grade, small-batch expeditions guided by certified rescue professionals.
+                </p>
               </motion.div>
-            ))}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  {
+                    title: 'Certified Rescue Guides',
+                    desc: 'Every leader is certified by Nehru Institute of Mountaineering and holds Wilderness First Responder (WFR) clearance.',
+                    icon: (
+                      <svg className="h-5 w-5 text-[#38BDF8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    )
+                  },
+                  {
+                    title: 'Secure razorpay checkout',
+                    desc: 'Direct payment processing. Instant booking confirmation and transparent refund logs.',
+                    icon: (
+                      <svg className="h-5 w-5 text-[#38BDF8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    )
+                  },
+                  {
+                    title: 'Intimate Batches (Max 12)',
+                    desc: 'Small groups ensure a safe guide-to-trekker ratio and minimal environmental impact.',
+                    icon: (
+                      <svg className="h-5 w-5 text-[#38BDF8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    )
+                  },
+                  {
+                    title: '100% Guaranteed Dates',
+                    desc: 'Once booked, departures are guaranteed. We do not cancel trips due to low registration.',
+                    icon: (
+                      <svg className="h-5 w-5 text-[#38BDF8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    )
+                  }
+                ].map((pillar, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex space-x-3"
+                  >
+                    <div className="flex-shrink-0 w-8 h-8 bg-[#38BDF8]/10 rounded-lg flex items-center justify-center mt-0.5">
+                      {pillar.icon}
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold text-sm uppercase tracking-wide">{pillar.title}</h4>
+                      <p className="text-[#94A3B8] text-xs leading-relaxed mt-1 font-light">{pillar.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
-          {/* Desktop: normal grid */}
-          <div className="hidden md:grid md:grid-cols-3 gap-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="backdrop-blur-xl bg-[#071827]/80 border border-white/10 rounded-2xl p-6 text-center"
-            >
-              <p className="text-3xl font-black text-[#38BDF8] hero-text mb-2">25K+</p>
-              <p className="text-[#94A3B8] text-sm">Happy Trekkers</p>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="backdrop-blur-xl bg-[#071827]/80 border border-white/10 rounded-2xl p-6 text-center"
-            >
-              <p className="text-3xl font-black text-[#38BDF8] hero-text mb-2">120+</p>
-              <p className="text-[#94A3B8] text-sm">Departures Annually</p>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="backdrop-blur-xl bg-[#071827]/80 border border-white/10 rounded-2xl p-6 text-center"
-            >
-              <p className="text-3xl font-black text-[#38BDF8] hero-text mb-2">4.9</p>
-              <p className="text-[#94A3B8] text-sm">Rated Experience</p>
-            </motion.div>
-          </div>
-          <p className="text-center text-[#94A3B8] text-sm mt-4">
-            Fixed departures • Certified leaders • Safety-first Himalayan expeditions
-          </p>
         </div>
-      </div>
+      </section>
 
       {/* Search/Filter Section */}
       <section className="py-24">
@@ -199,7 +242,7 @@ const Home = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.05 }}
                   onClick={() => navigate(`/categories/${category.id}`)}
-                  className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center hover:border-[#38BDF8]/30 transition-all hover:-translate-y-2 cursor-pointer h-full"
+                  className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center cursor-pointer h-full tv-card-glow hover:-translate-y-1.5"
                 >
                   <div className="w-12 h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-4">
                     <IconComponent className="h-6 w-6 text-[#38BDF8]" />
@@ -234,7 +277,7 @@ const Home = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.05 }}
                   onClick={() => navigate(`/categories/${category.id}`)}
-                  className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center hover:border-[#38BDF8]/30 transition-all hover:-translate-y-2 cursor-pointer"
+                  className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center cursor-pointer tv-card-glow hover:-translate-y-1.5"
                 >
                   <div className="w-12 h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-4">
                     <IconComponent className="h-6 w-6 text-[#38BDF8]" />
@@ -279,7 +322,7 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-[#071827] border border-white/10 rounded-2xl p-6 h-full"
+                className="bg-[#071827] border border-white/10 rounded-2xl p-6 h-full tv-card-glow hover:-translate-y-1.5"
               >
                 <div className="w-14 h-14 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mb-4">
                   <item.icon className="h-7 w-7 text-[#38BDF8]" />
@@ -306,7 +349,7 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-[#071827] border border-white/10 rounded-2xl p-6"
+                className="bg-[#071827] border border-white/10 rounded-2xl p-6 tv-card-glow hover:-translate-y-1.5"
               >
                 <div className="w-14 h-14 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mb-4">
                   <item.icon className="h-7 w-7 text-[#38BDF8]" />
@@ -350,7 +393,7 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center h-full"
+                className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center h-full tv-card-glow hover:-translate-y-1.5"
               >
                 <div className="w-12 h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-3">
                   <item.icon className="h-6 w-6 text-[#38BDF8]" />
@@ -376,7 +419,7 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center"
+                className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center tv-card-glow hover:-translate-y-1.5"
               >
                 <div className="w-12 h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-3">
                   <item.icon className="h-6 w-6 text-[#38BDF8]" />
@@ -428,7 +471,7 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 onClick={() => navigate('/blog')}
-                className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden hover:border-[#38BDF8]/30 transition-all hover:-translate-y-2 cursor-pointer h-full"
+                className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden cursor-pointer h-full tv-card-glow hover:-translate-y-1.5"
               >
                 <div className="h-48 overflow-hidden">
                   <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
@@ -452,7 +495,7 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 onClick={() => navigate('/blog')}
-                className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden hover:border-[#38BDF8]/30 transition-all hover:-translate-y-2 cursor-pointer"
+                className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden cursor-pointer tv-card-glow hover:-translate-y-1.5"
               >
                 <div className="h-48 overflow-hidden">
                   <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
@@ -508,7 +551,7 @@ const Home = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
               <button
                 onClick={() => navigate('/treks')}
-                className="bg-[#F97316] hover:bg-[#ea580c] text-white px-8 py-4 rounded-full text-base font-bold transition-all active:scale-95 shadow-lg"
+                className="bg-[#F97316] hover:bg-[#ea580c] text-white px-8 py-4 rounded-full text-base font-bold transition-all active:scale-95 shadow-lg tv-btn-cta"
                 data-testid="final-cta-plan-trek"
               >
                 Plan Your Trek

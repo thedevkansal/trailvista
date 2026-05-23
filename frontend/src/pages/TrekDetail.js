@@ -209,7 +209,7 @@ const TrekDetail = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Quick Facts */}
-            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6">
+            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 shadow-xl">
               <h2 className="text-2xl font-bold text-white mb-6">Quick Facts</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div>
@@ -232,13 +232,13 @@ const TrekDetail = () => {
             </div>
 
             {/* Overview */}
-            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6">
+            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 shadow-xl">
               <h2 className="text-2xl font-bold text-white mb-4">Overview</h2>
               <p className="text-[#94A3B8] leading-relaxed">{trek.overview}</p>
             </div>
 
             {/* Itinerary */}
-            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6">
+            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 shadow-xl">
               <h2 className="text-2xl font-bold text-white mb-6">Day-wise Itinerary</h2>
               <div className="space-y-4">
                 {itinerary.map((day) => (
@@ -264,7 +264,7 @@ const TrekDetail = () => {
 
             {/* Inclusions/Exclusions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-[#071827] border border-white/10 rounded-2xl p-6">
+              <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 shadow-xl">
                 <h3 className="text-xl font-bold text-white mb-4">Inclusions</h3>
                 <ul className="space-y-2">
                   {inclusions.map((item, idx) => (
@@ -276,7 +276,7 @@ const TrekDetail = () => {
                 </ul>
               </div>
 
-              <div className="bg-[#071827] border border-white/10 rounded-2xl p-6">
+              <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 shadow-xl">
                 <h3 className="text-xl font-bold text-white mb-4">Exclusions</h3>
                 <ul className="space-y-2">
                   {exclusions.map((item, idx) => (
@@ -290,7 +290,7 @@ const TrekDetail = () => {
             </div>
 
             {/* Things to Carry */}
-            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6">
+            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 shadow-xl">
               <h2 className="text-2xl font-bold text-white mb-4">Things to Carry</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {thingsToCarry.map((item, idx) => (
@@ -304,7 +304,7 @@ const TrekDetail = () => {
 
             {/* Reviews */}
             {trekReviews.length > 0 && (
-              <div className="bg-[#071827] border border-white/10 rounded-2xl p-6">
+              <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 shadow-xl">
                 <h2 className="text-2xl font-bold text-white mb-6">Trekker Reviews</h2>
                 <div className="space-y-4">
                   {trekReviews.map((review) => (
@@ -338,7 +338,7 @@ const TrekDetail = () => {
 
           {/* Booking Card - Sticky */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 bg-[#071827] border border-white/10 rounded-2xl p-6">
+            <div className="sticky top-24 bg-[#071827] border border-white/10 rounded-2xl p-6 shadow-2xl tv-card-glow">
               <div className="mb-6">
                 <p className="text-[#94A3B8] text-sm mb-2">Starting from</p>
                 <p className="text-4xl font-black text-white">₹{trek.price.toLocaleString('en-IN')}</p>
@@ -394,11 +394,17 @@ const TrekDetail = () => {
                 <button 
                   onClick={handleBookNow}
                   disabled={paymentLoading || !!bookingSuccess}
-                  className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3 rounded-lg font-bold transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                  className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3 rounded-lg font-bold transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 tv-btn-cta"
                   data-testid="trek-detail-book-now"
                 >
                   {paymentLoading ? 'Processing...' : bookingSuccess ? 'Booked' : 'Book Now'}
                 </button>
+                <div className="flex items-center justify-center space-x-1.5 text-xs text-[#94A3B8] pb-1 pt-1">
+                  <svg className="h-3.5 w-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span>Secure payment processed via Razorpay</span>
+                </div>
                 <button 
                   onClick={() => {
                     if (!user) {
@@ -491,6 +497,44 @@ const TrekDetail = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Mobile Sticky Booking Widget */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#071827]/95 border-t border-white/10 p-4 pb-safe flex items-center justify-between backdrop-blur-md shadow-2xl lg:hidden">
+        <div>
+          <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider mb-0.5">Starting from</p>
+          <div className="flex items-baseline space-x-1">
+            <span className="text-xl font-black text-white">₹{trek.price.toLocaleString('en-IN')}</span>
+            <span className="text-[#94A3B8] text-[10px]">/ person</span>
+          </div>
+          {trek.nextBatch && (
+            <p className="text-[#38BDF8] text-[10px] font-semibold mt-0.5">
+              Next: {new Date(trek.nextBatch).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => {
+              if (!user) {
+                navigate('/signup', { state: { from: location.pathname } });
+              } else {
+                setEnquiryOpen(true);
+              }
+            }}
+            className="border border-white/20 hover:border-[#38BDF8] text-white p-2.5 rounded-lg font-bold text-xs"
+            aria-label="Send Enquiry"
+          >
+            <MessageCircle className="h-5 w-5" />
+          </button>
+          <button
+            onClick={handleBookNow}
+            disabled={paymentLoading || !!bookingSuccess}
+            className="bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 shadow-lg"
+          >
+            {paymentLoading ? 'Processing...' : bookingSuccess ? 'Booked' : 'Book Now'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
