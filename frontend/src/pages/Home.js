@@ -174,7 +174,7 @@ const Home = () => {
           >
             <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">Featured Adventures</p>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white hero-text uppercase mb-6">
-              POPULAR <span className="text-[#38BDF8]">EXPEDITIONS</span>
+              POPULAR <span className="text-[#38BDF8]">TREKS</span>
             </h2>
           </motion.div>
 

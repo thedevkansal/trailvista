@@ -13,6 +13,9 @@ import Categories from './pages/Categories';
 import About from './pages/About';
 import Safety from './pages/Safety';
 import Blog from './pages/Blog';
+import BlogDetail from './pages/BlogDetail';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsConditions from './pages/TermsConditions';
 import Gallery from './pages/Gallery';
 import Reviews from './pages/Reviews';
 import Contact from './pages/Contact';
@@ -41,6 +44,9 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/safety" element={<Safety />} />
               <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogDetail />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-and-conditions" element={<TermsConditions />} />
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/reviews" element={<Reviews />} />
               <Route path="/contact" element={<Contact />} />

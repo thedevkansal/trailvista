@@ -138,22 +138,48 @@ const About = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+          className="mb-8"
         >
-          <h2 className="text-3xl font-black text-white hero-text uppercase text-center mb-12">
+          <h2 className="text-3xl font-black text-white hero-text uppercase text-center mb-12 tracking-wider">
             MEET THE <span className="text-[#38BDF8]">TEAM</span>
           </h2>
           {/* Mobile: swipe */}
           <HorizontalScrollSection>
             {[
-              { name: 'Rajesh Kumar', role: 'Founder & Lead Expedition Guide', image: 'https://images.unsplash.com/photo-1486036413660-59d02a64e549' },
-              { name: 'Priya Sharma', role: 'Operations Head', image: 'https://images.pexels.com/photos/5779251/pexels-photo-5779251.jpeg' },
-              { name: 'Vikram Singh', role: 'Senior Trek Leader', image: 'https://images.unsplash.com/photo-1486036413660-59d02a64e549' }
+              { 
+                name: 'Rajesh Kumar', 
+                role: 'Founder & Lead Expedition Guide', 
+                image: 'https://images.unsplash.com/photo-1527004013197-933c4bb611b3?auto=format&fit=crop&q=80&w=800',
+                bio: '80+ high-altitude Himalayan summits, certified Wilderness First Responder.'
+              },
+              { 
+                name: 'Priya Sharma', 
+                role: 'Operations Head', 
+                image: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&q=80&w=800',
+                bio: 'Expedition safety manager & regional community outreach director.'
+              },
+              { 
+                name: 'Vikram Singh', 
+                role: 'Senior Trek Leader', 
+                image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&q=80&w=800',
+                bio: '12 years of guiding experience on frozen winter Zanskar trails.'
+              }
             ].map((member, index) => (
-              <div key={index} className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden h-full">
-                <img src={member.image} alt={member.name} className="w-full h-52 object-cover" />
-                <div className="p-5">
-                  <h4 className="text-white font-bold text-base mb-1">{member.name}</h4>
-                  <p className="text-[#38BDF8] text-sm">{member.role}</p>
+              <div key={index} className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden h-full flex flex-col group hover:border-[#38BDF8]/30 transition-all duration-300">
+                <div className="h-52 overflow-hidden relative">
+                  <img src={member.image} alt={member.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute top-3 right-3">
+                    <span className="bg-[#38BDF8]/90 backdrop-blur-sm text-[10px] font-bold text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Guide
+                    </span>
+                  </div>
+                </div>
+                <div className="p-5 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h4 className="text-white font-bold text-base mb-1">{member.name}</h4>
+                    <p className="text-[#38BDF8] text-xs font-semibold uppercase tracking-wider mb-2">{member.role}</p>
+                  </div>
+                  <p className="text-[#94A3B8] text-xs leading-relaxed mt-2 border-t border-white/5 pt-2">{member.bio}</p>
                 </div>
               </div>
             ))}
@@ -161,15 +187,38 @@ const About = () => {
           {/* Desktop: grid */}
           <div className="hidden md:grid md:grid-cols-3 gap-8">
             {[
-              { name: 'Rajesh Kumar', role: 'Founder & Lead Expedition Guide', image: 'https://images.unsplash.com/photo-1486036413660-59d02a64e549' },
-              { name: 'Priya Sharma', role: 'Operations Head', image: 'https://images.pexels.com/photos/5779251/pexels-photo-5779251.jpeg' },
-              { name: 'Vikram Singh', role: 'Senior Trek Leader', image: 'https://images.unsplash.com/photo-1486036413660-59d02a64e549' }
+              { 
+                name: 'Rajesh Kumar', 
+                role: 'Founder & Lead Expedition Guide', 
+                image: 'https://images.unsplash.com/photo-1527004013197-933c4bb611b3?auto=format&fit=crop&q=80&w=800',
+                bio: '80+ high-altitude Himalayan summits, certified Wilderness First Responder.'
+              },
+              { 
+                name: 'Priya Sharma', 
+                role: 'Operations Head', 
+                image: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&q=80&w=800',
+                bio: 'Expedition safety manager & regional community outreach director.'
+              },
+              { 
+                name: 'Vikram Singh', 
+                role: 'Senior Trek Leader', 
+                image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&q=80&w=800',
+                bio: '12 years of guiding experience on frozen winter Zanskar trails.'
+              }
             ].map((member, index) => (
-              <div key={index} className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden">
-                <img src={member.image} alt={member.name} className="w-full h-64 object-cover" />
+              <div key={index} className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden group hover:border-[#38BDF8]/30 hover:shadow-xl hover:shadow-[#38BDF8]/5 transition-all duration-300">
+                <div className="h-64 overflow-hidden relative">
+                  <img src={member.image} alt={member.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute top-4 right-4">
+                    <span className="bg-[#38BDF8]/90 backdrop-blur-sm text-xs font-bold text-white px-3 py-1 rounded-full uppercase tracking-wider">
+                      Guide
+                    </span>
+                  </div>
+                </div>
                 <div className="p-6">
                   <h4 className="text-white font-bold text-lg mb-1">{member.name}</h4>
-                  <p className="text-[#38BDF8] text-sm">{member.role}</p>
+                  <p className="text-[#38BDF8] text-xs font-bold uppercase tracking-wider mb-3">{member.role}</p>
+                  <p className="text-[#94A3B8] text-sm leading-relaxed border-t border-white/5 pt-3 mt-3">{member.bio}</p>
                 </div>
               </div>
             ))}
