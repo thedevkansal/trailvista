@@ -244,6 +244,8 @@ Create a `.env` file inside the `backend/` directory:
 | `SMTP_FROM_EMAIL` | Display sender email | `bookings@trailvista.com` |
 | `SMTP_FROM_NAME` | Display sender name | `TrailVista Bookings` |
 | `CORS_ORIGINS` | Permitted frontend origin hosts (comma-separated) | `http://localhost:3000` |
+| `RESEND_API_KEY` | Resend API key for production booking email delivery | `re_123456789` |
+| `EMAIL_FROM` | Verified Resend sender email address | `bookings@trailvista.com` |
 
 > [!CAUTION]
 > The `SUPABASE_SERVICE_ROLE_KEY` has full administrative database privileges, bypassing Row Level Security (RLS). Never add it to your frontend `.env` file. Do not commit `.env` files to git.
