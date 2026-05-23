@@ -11,9 +11,9 @@ const Footer = () => {
           <div className="col-span-2 md:col-span-1 lg:col-span-1">
             <div className="flex items-center space-x-3 mb-3 md:mb-4">
               <img 
-                src="https://static.prod-images.emergentagent.com/jobs/221755c1-0324-4690-aa42-bfdb3646c22b/images/07979eb0085519e24d5c27211b05e6a615ac4003d035ff3cc438e9f0a527dce3.png" 
+                src="/logo.png" 
                 alt="TrailVista Expeditions" 
-                className="h-10 w-10"
+                className="h-10 w-auto object-contain"
               />
               <span className="text-xl font-bold hero-text tv-text-primary text-white">TRAILVI<span className="text-[#38BDF8]">STA</span></span>
             </div>
