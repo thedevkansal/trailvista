@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { ShieldAlert, CheckCircle2, Eye, EyeOff, Lock } from 'lucide-react';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
-  const { syncSession } = useAuth();
+  const { syncSession, setIsPasswordRecovery } = useAuth();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   
@@ -42,10 +43,33 @@ const AuthCallback = () => {
         }
       };
 
+      // 1. Pre-flight check: If there's already a session set, we treat it as successful
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (existingSession) {
+        if (type === 'recovery') {
+          setIsRecovery(true);
+        } else {
+          await redirectHome();
+        }
+        return;
+      }
+
       if (code) {
         try {
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          if (exchangeError) throw exchangeError;
+          if (exchangeError) {
+            // Second-chance check: maybe it was already exchanged (e.g. React StrictMode double run)
+            const { data: { session: postExchangeSession } } = await supabase.auth.getSession();
+            if (postExchangeSession) {
+              if (type === 'recovery') {
+                setIsRecovery(true);
+              } else {
+                await redirectHome();
+              }
+              return;
+            }
+            throw exchangeError;
+          }
 
           if (type === 'recovery') {
             setIsRecovery(true);
@@ -54,24 +78,22 @@ const AuthCallback = () => {
           }
         } catch (err) {
           console.error('Code exchange failed:', err);
-          setError(err.message || 'Verification failed. The link may have expired.');
+          // Also do a final session check before showing error
+          const { data: { session: finalSession } } = await supabase.auth.getSession();
+          if (finalSession) {
+            if (type === 'recovery') {
+              setIsRecovery(true);
+            } else {
+              await redirectHome();
+            }
+          } else {
+            if (setIsPasswordRecovery) {
+              setIsPasswordRecovery(false);
+            }
+            setError(err.message || 'Verification failed. The link may have expired.');
+          }
         }
       } else {
-        // If there's already a session set (implicit flow)
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) {
-          console.error('getSession error:', sessionError);
-        }
-        
-        if (session) {
-          if (type === 'recovery') {
-            setIsRecovery(true);
-          } else {
-            await redirectHome();
-          }
-          return;
-        }
-
         // Listen for Auth events in case implicit flow takes a moment to process the hash
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
           if (event === 'SIGNED_IN' && currentSession) {
@@ -85,19 +107,34 @@ const AuthCallback = () => {
         });
 
         // Timeout fallback if no session is detected within 4 seconds
-        const timeout = setTimeout(() => {
+        const timeout = setTimeout(async () => {
           subscription.unsubscribe();
           if (!isRecovery) {
-            setError(
-              'Verification completed, but login session was not created. Please log in manually.'
-            );
+            // Final check for session before erroring
+            const { data: { session: finalCheckSession } } = await supabase.auth.getSession();
+            if (finalCheckSession) {
+              if (type === 'recovery') {
+                setIsRecovery(true);
+              } else {
+                await redirectHome();
+              }
+            } else {
+              if (setIsPasswordRecovery) {
+                setIsPasswordRecovery(false);
+              }
+              if (type === 'recovery') {
+                setError('No active password reset session found. Please request a new password reset link.');
+              } else {
+                setError('Verification completed, but login session was not created. Please log in manually.');
+              }
+            }
           }
         }, 4000);
       }
     };
 
     handleCallback();
-  }, [navigate, syncSession, isRecovery]);
+  }, [navigate, syncSession, isRecovery, setIsPasswordRecovery]);
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
@@ -109,8 +146,8 @@ const AuthCallback = () => {
       setError('Passwords do not match.');
       return;
     }
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters long.');
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters long.');
       return;
     }
 
@@ -120,9 +157,21 @@ const AuthCallback = () => {
       const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
       if (updateError) throw updateError;
 
-      setSuccessMessage('Password updated successfully. Redirecting to home...');
+      // Clear the temporary recovery session on successful password reset
+      await supabase.auth.signOut().catch(() => {});
+      if (setIsPasswordRecovery) {
+        setIsPasswordRecovery(false);
+      }
+
+      setSuccessMessage('Password updated successfully. Redirecting to login...');
       setTimeout(() => {
-        navigate('/', { replace: true });
+        navigate('/login', {
+          state: {
+            message: 'Password updated. Please log in with your new password.',
+            mode: 'login'
+          },
+          replace: true
+        });
       }, 3000);
     } catch (err) {
       setError(err.message || 'Failed to update password.');
@@ -183,7 +232,7 @@ const AuthCallback = () => {
                     required
                     disabled={loading}
                     className="w-full bg-[#020617] border border-white/10 rounded-lg pl-4 pr-10 py-3 text-white text-sm focus:outline-none focus:border-[#38BDF8] disabled:opacity-50"
-                    placeholder="New password (min 8 chars)"
+                    placeholder="New password (min 6 chars)"
                     data-testid="recovery-new-password"
                   />
                   <button
@@ -236,12 +285,31 @@ const AuthCallback = () => {
             </div>
             <h2 className="text-xl font-bold text-white">Authentication Error</h2>
             <p className="text-[#94A3B8] text-sm">{error}</p>
-            <button
-              onClick={() => navigate('/login', { replace: true })}
-              className="mt-4 px-6 py-2 bg-[#38BDF8] hover:bg-[#0ea5e9] text-white rounded-lg font-bold text-sm transition-all"
-            >
-              Go to Login
-            </button>
+             <button
+               onClick={() => {
+                 const params = new URLSearchParams(window.location.search);
+                 const searchType = params.get('type');
+                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                 const hashType = hashParams.get('type');
+                 const type = searchType || hashType;
+                 
+                 if (type === 'recovery') {
+                   navigate('/login', { state: { mode: 'forgot' }, replace: true });
+                 } else {
+                   navigate('/login', { replace: true });
+                 }
+               }}
+               className="mt-4 px-6 py-2 bg-[#38BDF8] hover:bg-[#0ea5e9] text-white rounded-lg font-bold text-sm transition-all"
+             >
+               {(() => {
+                 const params = new URLSearchParams(window.location.search);
+                 const searchType = params.get('type');
+                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                 const hashType = hashParams.get('type');
+                 const type = searchType || hashType;
+                 return type === 'recovery' ? 'Request Reset Link' : 'Go to Login';
+               })()}
+             </button>
           </div>
         ) : (
           <div className="space-y-4 text-center">

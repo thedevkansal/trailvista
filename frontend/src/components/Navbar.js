@@ -11,8 +11,21 @@ const Navbar = () => {
   const [destinationDropdown, setDestinationDropdown] = useState(false);
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, isPasswordRecovery } = useAuth();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (isPasswordRecovery) {
+      const search = location.search;
+      const hash = location.hash;
+      const isCurrentlyOnRecoveryCallback = location.pathname === '/auth/callback' && 
+        (search.includes('type=recovery') || hash.includes('type=recovery'));
+        
+      if (!isCurrentlyOnRecoveryCallback) {
+        navigate('/auth/callback?type=recovery', { replace: true });
+      }
+    }
+  }, [isPasswordRecovery, location, navigate]);
 
   const getUserDisplayName = () => {
     if (!user) return '';

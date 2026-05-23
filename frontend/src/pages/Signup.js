@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 import { UserPlus, ShieldAlert, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 const Signup = () => {
@@ -84,6 +85,34 @@ const Signup = () => {
     try {
       setError(null);
       setLoading(true);
+
+      // Pre-flight check: Try logging in first to see if user already exists with this password
+      let preFlightExists = false;
+      try {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        if (!signInError && signInData?.user) {
+          preFlightExists = true;
+        }
+      } catch (signInErr) {
+        // Ignore and proceed to signUp if login fails
+      }
+
+      if (preFlightExists) {
+        setError('Account already exists. Please log in.');
+        setTimeout(() => {
+          navigate('/login', {
+            state: {
+              email,
+              message: 'Account already exists. Please log in.'
+            }
+          });
+        }, 3000);
+        return;
+      }
+
       const signupData = await signup(email, password, {
         fullName,
         phone: `+91${phone}`,

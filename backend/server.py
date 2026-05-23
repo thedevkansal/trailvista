@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env", override=True)
 
+import requests
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.responses import JSONResponse
 from payments import payments_router
@@ -65,6 +66,62 @@ async def health_check():
 @api_router.get("/")
 async def root():
     return {"message": "Hello World"}
+
+
+@api_router.get("/auth/check-user")
+async def check_user(email: str):
+    email_clean = email.strip().lower()
+    supabase_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
+    service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    
+    if not supabase_url or not service_key:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Supabase credentials not configured on backend."}
+        )
+        
+    headers = {
+        "Authorization": f"Bearer {service_key}",
+        "apikey": service_key,
+        "Accept": "application/json",
+    }
+    
+    page = 1
+    per_page = 50
+    exists = False
+    
+    while True:
+        try:
+            response = requests.get(
+                f"{supabase_url}/auth/v1/admin/users",
+                headers=headers,
+                params={"page": page, "per_page": per_page},
+                timeout=10
+            )
+            if response.status_code != 200:
+                logger.error("Supabase user search failed with status %s: %s", response.status_code, response.text)
+                break
+            
+            data = response.json()
+            users = data.get("users", []) if isinstance(data, dict) else data
+            if not users:
+                break
+                
+            for u in users:
+                u_email = u.get("email")
+                if u_email and u_email.strip().lower() == email_clean:
+                    exists = True
+                    break
+            
+            if exists or len(users) < per_page:
+                break
+                
+            page += 1
+        except Exception as exc:
+            logger.error("Exception occurred during user lookup: %s", exc)
+            break
+            
+    return {"exists": exists}
 
 
 api_router.include_router(payments_router)

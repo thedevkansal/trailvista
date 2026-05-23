@@ -8,6 +8,7 @@ const AUTH_EVENTS = new Set([
   'TOKEN_REFRESHED',
   'SIGNED_OUT',
   'USER_UPDATED',
+  'PASSWORD_RECOVERY',
 ]);
 
 export const AuthProvider = ({ children }) => {
@@ -15,6 +16,17 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const initialSessionResolved = useRef(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(() => {
+    try {
+      const pathname = window.location.pathname;
+      const search = window.location.search;
+      const hash = window.location.hash;
+      return pathname.startsWith('/auth/callback') && 
+        (search.includes('type=recovery') || hash.includes('type=recovery'));
+    } catch (e) {
+      return false;
+    }
+  });
 
   const fetchProfile = async (userId) => {
     const { data, error } = await supabase
@@ -80,9 +92,18 @@ export const AuthProvider = ({ children }) => {
       if (!isMounted) return;
       if (!AUTH_EVENTS.has(event)) return;
 
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+        setSession(authSession);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
       if (event === 'SIGNED_OUT') {
         setSession(null);
         setUser(null);
+        setIsPasswordRecovery(false);
         setLoading(false);
         return;
       }
@@ -93,6 +114,7 @@ export const AuthProvider = ({ children }) => {
 
       setSession(authSession);
       if (authSession?.user) {
+        setIsPasswordRecovery(false);
         setUser((prev) => ({
           ...authSession.user,
           profile: prev?.id === authSession.user.id ? prev.profile : null,
@@ -187,13 +209,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const value = {
-    user,
+    user: isPasswordRecovery ? null : user,
     session,
     loading,
     login,
     syncSession,
     signup,
     logout,
+    isPasswordRecovery,
+    setIsPasswordRecovery,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
