@@ -1,14 +1,15 @@
-from fastapi import FastAPI, APIRouter, Request
-from fastapi.responses import JSONResponse
-from payments import payments_router
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
 from pathlib import Path
+from dotenv import load_dotenv
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env", override=True)
+
+from fastapi import FastAPI, APIRouter, Request
+from fastapi.responses import JSONResponse
+from payments import payments_router
+from starlette.middleware.cors import CORSMiddleware
 
 # ---------------------------------------------------------------------------
 # Startup diagnostics (never prints secret values)
