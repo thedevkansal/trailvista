@@ -32,6 +32,8 @@ print(f"  HAS SMTP_FROM_EMAIL: {bool(os.getenv('SMTP_FROM_EMAIL'))}")
 print(f"  HAS SMTP_FROM_NAME: {bool(os.getenv('SMTP_FROM_NAME'))}")
 print(f"  HAS RESEND_API_KEY: {bool(os.getenv('RESEND_API_KEY'))}")
 print(f"  HAS EMAIL_FROM: {bool(os.getenv('EMAIL_FROM'))}")
+print(f"  HAS BREVO_API_KEY: {bool(os.getenv('BREVO_API_KEY'))}")
+print(f"  HAS EMAIL_FROM_NAME: {bool(os.getenv('EMAIL_FROM_NAME'))}")
 print("===================================")
 
 logging.basicConfig(
