@@ -260,47 +260,6 @@ def _send_message(msg: EmailMessage, from_email: str, to_email: str) -> None:
             server.send_message(msg, from_addr=from_email, to_addrs=[to_email])
 
 
-def _send_via_brevo(to_email: str, subject: str, text_body: str, html_body: str) -> bool:
-    api_key = os.environ.get("BREVO_API_KEY")
-    from_email = os.environ.get("EMAIL_FROM") or os.environ.get("SMTP_FROM_EMAIL") or "bookings@trailvista.com"
-    from_name = os.environ.get("EMAIL_FROM_NAME") or os.environ.get("SMTP_FROM_NAME") or "TrailVista"
-    
-    logger.info("brevo email queued")
-    try:
-        response = requests.post(
-            "https://api.brevo.com/v3/smtp/email",
-            headers={
-                "api-key": api_key,
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            json={
-                "sender": {
-                    "name": from_name,
-                    "email": from_email
-                },
-                "to": [
-                    {
-                        "email": to_email
-                    }
-                ],
-                "subject": subject,
-                "htmlContent": html_body,
-                "textContent": text_body
-            },
-            timeout=15
-        )
-        if response.status_code in (200, 201, 202):
-            logger.info("brevo email sent successfully")
-            return True
-        else:
-            logger.error("brevo email failed with status/error: status=%s body=%s", response.status_code, response.text)
-            return False
-    except Exception as exc:
-        logger.error("brevo email failed with status/error: %s", exc)
-        return False
-
-
 def _send_via_resend(to_email: str, subject: str, text_body: str, html_body: str) -> bool:
     api_key = os.environ.get("RESEND_API_KEY")
     from_email = os.environ.get("EMAIL_FROM") or os.environ.get("SMTP_FROM_EMAIL") or "onboarding@resend.dev"
@@ -342,16 +301,6 @@ def send_booking_confirmation_email(to_email: str, booking_details: dict[str, An
     if not recipient:
         logger.warning("Booking confirmation skipped: no recipient email found.")
         return False
-
-    brevo_key = os.environ.get("BREVO_API_KEY")
-    if brevo_key:
-        logger.info("booking email provider selected: brevo")
-        try:
-            subject, text_body, html_body = _build_email_content(booking_details)
-            return _send_via_brevo(recipient, subject, text_body, html_body)
-        except Exception as exc:
-            logger.error("Booking confirmation email failed: %s", exc)
-            return False
 
     resend_key = os.environ.get("RESEND_API_KEY")
     if resend_key:
