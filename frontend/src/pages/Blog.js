@@ -1,87 +1,73 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Calendar, Clock } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
+import { FadeIn } from '../components/motion';
 import { blogPosts } from '../data/blogData';
 
+const formatDate = (date) =>
+  new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
 const Blog = () => {
+  const [lead, ...rest] = blogPosts;
+
   return (
     <div className="min-h-screen pt-32 pb-24 bg-[#020617] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
-          <h1 className="text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4 tracking-wider">
-            TREK <span className="text-[#38BDF8]">GUIDES</span>
-          </h1>
-          <p className="text-[#94A3B8] text-lg max-w-2xl mx-auto">
-            Expert advice, gear checklists, fitness tips, and winter prep from our expedition leaders.
-          </p>
-        </motion.div>
+        <PageHeader lines={['Field notes and', 'trek guides']}>
+          <p>Gear checklists, training plans and winter prep, written by the leaders who walk these trails every season.</p>
+        </PageHeader>
 
-        {/* Blog Post Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogPosts.map((post, idx) => (
-            <motion.article
-              key={post.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden hover:border-[#38BDF8]/30 hover:shadow-xl hover:shadow-[#38BDF8]/5 transition-all duration-300 flex flex-col h-full group"
-            >
-              {/* Card Image */}
-              <div className="h-56 overflow-hidden relative">
-                <img 
-                  src={post.image} 
-                  alt={post.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-750 ease-out"
+        {/* Lead story */}
+        {lead && (
+          <FadeIn as="article" className="mb-16">
+            <Link to={`/blog/${lead.id}`} className="group grid grid-cols-1 gap-8 !outline-offset-4 lg:grid-cols-12 lg:items-end">
+              <div className="relative aspect-[16/10] overflow-hidden rounded-[28px] bg-[#071827] lg:col-span-7">
+                <img
+                  src={lead.image}
+                  alt={lead.title}
+                  className="h-full w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
                 />
-                <div className="absolute top-4 left-4">
-                  <span className="bg-[#38BDF8] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-md">
-                    {post.category}
-                  </span>
-                </div>
               </div>
-
-              {/* Card Content */}
-              <div className="p-6 flex flex-col flex-1">
-                {/* Meta details */}
-                <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-3">
-                  <div className="flex items-center space-x-1.5">
-                    <Calendar className="h-3.5 w-3.5 text-[#38BDF8]" />
-                    <span>{new Date(post.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                  </div>
-                  <div className="flex items-center space-x-1.5">
-                    <Clock className="h-3.5 w-3.5 text-[#38BDF8]" />
-                    <span>{post.readTime}</span>
-                  </div>
-                </div>
-
-                {/* Title */}
-                <h2 className="text-white font-bold text-xl mb-3 group-hover:text-[#38BDF8] transition-colors leading-tight">
-                  <Link to={`/blog/${post.id}`}>{post.title}</Link>
-                </h2>
-
-                {/* Excerpt */}
-                <p className="text-[#94A3B8] text-sm leading-relaxed mb-6 flex-1">
-                  {post.excerpt}
+              <div className="lg:col-span-5 lg:pb-4">
+                <p className="text-sm text-[#94A3B8]">
+                  {lead.category} · {formatDate(lead.date)} · {lead.readTime}
                 </p>
-
-                {/* Action Link */}
-                <Link 
-                  to={`/blog/${post.id}`} 
-                  className="text-[#38BDF8] hover:text-[#0ea5e9] font-bold text-sm transition-colors inline-flex items-center space-x-1.5 mt-auto group/btn cursor-pointer"
-                >
-                  <span>Read Full Article</span>
-                  <span className="group-hover/btn:translate-x-1 transition-transform">→</span>
-                </Link>
+                <h2 className="mt-3 font-display text-3xl font-medium leading-[1.1] tracking-tight text-white sm:text-4xl">
+                  {lead.title}
+                </h2>
+                <p className="mt-4 leading-relaxed text-[#94A3B8]">{lead.excerpt}</p>
+                <span className="mt-6 inline-flex items-center gap-1.5 font-semibold text-white group-hover:text-[#38BDF8]">
+                  Read the guide <ArrowUpRight className="h-4 w-4" />
+                </span>
               </div>
-            </motion.article>
+            </Link>
+          </FadeIn>
+        )}
+
+        {/* Remaining posts */}
+        <div className="grid grid-cols-1 gap-x-6 gap-y-12 border-t border-white/10 pt-12 md:grid-cols-2 lg:grid-cols-3">
+          {rest.map((post, idx) => (
+            <FadeIn as="article" key={post.id} delay={0.06 * (idx % 3)} className="h-full">
+              <Link to={`/blog/${post.id}`} className="group flex h-full flex-col !outline-offset-4">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-[#071827]">
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.05]"
+                  />
+                </div>
+                <p className="mt-5 text-sm text-[#94A3B8]">
+                  {post.category} · {post.readTime}
+                </p>
+                <h2 className="mt-2 font-display text-2xl font-medium leading-[1.15] tracking-tight text-white transition-colors group-hover:text-[#38BDF8]">
+                  {post.title}
+                </h2>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-[#94A3B8]">{post.excerpt}</p>
+                <p className="mt-4 text-xs text-[#94A3B8]">{formatDate(post.date)}</p>
+              </Link>
+            </FadeIn>
           ))}
         </div>
       </div>
