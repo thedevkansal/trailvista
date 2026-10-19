@@ -87,8 +87,12 @@ class FakeSupabase:
     def __init__(self, existing=None):
         self.rows = [existing] if existing else []
         self.inserted = []
+        self.accounts = {USER_ID: {"id": USER_ID, "email": USER_EMAIL, "user_metadata": {"full_name": "Owner"}}}
 
     def get(self, url, params=None, headers=None, timeout=None):
+        if "/auth/v1/admin/users/" in url:
+            account = self.accounts.get(url.rsplit("/", 1)[-1])
+            return FakeResponse(200, account) if account else FakeResponse(404, {"msg": "User not found"})
         assert url.endswith("/rest/v1/bookings")
         payment_id = params["razorpay_payment_id"].removeprefix("eq.")
         return FakeResponse(200, [r for r in self.rows if r["razorpay_payment_id"] == payment_id][:1])

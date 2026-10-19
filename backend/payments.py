@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import json
 import logging
 import os
 from datetime import date
@@ -14,7 +15,8 @@ load_dotenv(ROOT_DIR / ".env", override=True)
 
 import razorpay
 import requests
-from fastapi import APIRouter, Depends, Header, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, Header, HTTPException, BackgroundTasks, Request
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 
 from email_service import send_booking_confirmation_email
@@ -224,10 +226,39 @@ def verify_razorpay_signature(order_id: str, payment_id: str, signature: str, se
     return hmac.compare_digest(expected, signature)
 
 
-def _fetch_verified_order(order_id: str, trek_id: str, user_id: str) -> dict[str, Any]:
-    """Fetch the Razorpay order and confirm it was created by create_order for this
-    user and trek at the server-side price. The signature only proves order/payment
-    pairing, so the order itself is the source of truth for what was paid for."""
+def _order_mismatches(
+    order: dict[str, Any],
+    expected_trek_id: Optional[str] = None,
+    expected_user_id: Optional[str] = None,
+) -> list[str]:
+    """Return the fields on a Razorpay order that don't match what create_order would
+    have produced. Expected trek/user are optional; the notes must carry both either way."""
+    notes = order.get("notes")
+    if not isinstance(notes, dict):
+        notes = {}
+
+    order_trek_id = notes.get("trek_id")
+    order_user_id = notes.get("user_id")
+    expected_amount = TREK_PRICES.get(order_trek_id) if order_trek_id else None
+
+    mismatches = []
+    if not order_trek_id or (expected_trek_id is not None and order_trek_id != expected_trek_id):
+        mismatches.append("trek_id")
+    if not order_user_id or (expected_user_id is not None and order_user_id != expected_user_id):
+        mismatches.append("user_id")
+    if expected_amount is None or order.get("amount") != int(expected_amount * 100):
+        mismatches.append("amount")
+    if order.get("currency") != BOOKING_CURRENCY:
+        mismatches.append("currency")
+    return mismatches
+
+
+def verify_webhook_signature(raw_body: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(secret.encode("utf-8"), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature)
+
+
+def _fetch_order(order_id: str) -> dict[str, Any]:
     try:
         order = get_razorpay_client().order.fetch(order_id)
     except HTTPException:
@@ -239,32 +270,23 @@ def _fetch_verified_order(order_id: str, trek_id: str, user_id: str) -> dict[str
     if not isinstance(order, dict):
         logger.error("Razorpay order fetch returned unexpected payload for order_id=%s", order_id)
         raise HTTPException(status_code=502, detail="Unable to verify payment order.")
+    return order
 
-    notes = order.get("notes")
-    if not isinstance(notes, dict):
-        notes = {}
 
-    order_trek_id = notes.get("trek_id")
-    order_user_id = notes.get("user_id")
-    expected_amount = TREK_PRICES.get(order_trek_id) if order_trek_id else None
-
-    mismatches = []
-    if order_trek_id != trek_id:
-        mismatches.append("trek_id")
-    if order_user_id != user_id:
-        mismatches.append("user_id")
-    if expected_amount is None or order.get("amount") != int(expected_amount * 100):
-        mismatches.append("amount")
-    if order.get("currency") != BOOKING_CURRENCY:
-        mismatches.append("currency")
-
+def _fetch_verified_order(order_id: str, trek_id: str, user_id: str) -> dict[str, Any]:
+    """Fetch the Razorpay order and confirm it was created by create_order for this
+    user and trek at the server-side price. The signature only proves order/payment
+    pairing, so the order itself is the source of truth for what was paid for."""
+    order = _fetch_order(order_id)
+    mismatches = _order_mismatches(order, trek_id, user_id)
     if mismatches:
+        notes = order.get("notes") if isinstance(order.get("notes"), dict) else {}
         logger.warning(
             "Razorpay order mismatch order_id=%s fields=%s request_trek_id=%s order_trek_id=%s user_id=%s",
             order_id,
             ",".join(mismatches),
             trek_id,
-            order_trek_id,
+            notes.get("trek_id"),
             user_id,
         )
         raise HTTPException(status_code=400, detail="Payment verification failed.")
@@ -321,7 +343,9 @@ def _find_booking_by_payment_id(payment_id: str) -> Optional[dict[str, Any]]:
     return None
 
 
-def _insert_booking(booking_row: dict[str, Any]) -> dict[str, Any]:
+def _insert_booking(booking_row: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+    """Insert a booking. Returns (row, created); created is False when the unique
+    razorpay_payment_id constraint hit and the existing row was returned instead."""
     logger.info(
         "booking_insert_started payment_id=%s user_id=%s trek_id=%s",
         booking_row.get("razorpay_payment_id"),
@@ -350,7 +374,7 @@ def _insert_booking(booking_row: dict[str, Any]) -> dict[str, Any]:
                 booking_row.get("razorpay_payment_id"),
                 rows[0].get("id"),
             )
-            return rows[0]
+            return rows[0], True
         _log_supabase_error("booking_insert_empty_body", response)
         raise HTTPException(
             status_code=500,
@@ -361,7 +385,7 @@ def _insert_booking(booking_row: dict[str, Any]) -> dict[str, Any]:
         logger.info("booking_insert_conflict payment_id=%s", booking_row.get("razorpay_payment_id"))
         existing = _find_booking_by_payment_id(booking_row["razorpay_payment_id"])
         if existing:
-            return existing
+            return existing, False
 
     _log_supabase_error("booking_insert", response)
     if response.status_code == 403 and "42501" in response.text:
@@ -372,6 +396,50 @@ def _insert_booking(booking_row: dict[str, Any]) -> dict[str, Any]:
         status_code=500,
         detail="Payment verified but booking could not be saved.",
     )
+
+
+class BookingOwnershipConflict(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(status_code=409, detail="This payment is already linked to another booking.")
+
+
+def _record_booking(
+    *,
+    user_id: str,
+    trek_id: str,
+    order_id: str,
+    payment_id: str,
+    departure_date: Optional[str],
+) -> tuple[dict[str, Any], bool]:
+    """Single insert path shared by /verify and the webhook. Idempotent on
+    razorpay_payment_id: returns (booking, created) and never creates a duplicate.
+    Raises 409 if the payment is already booked under a different user."""
+    existing = _find_booking_by_payment_id(payment_id)
+    if existing:
+        booking, created = existing, False
+    else:
+        booking_row = {
+            "user_id": user_id,
+            "trek_id": trek_id,
+            "amount": TREK_PRICES[trek_id],
+            "currency": BOOKING_CURRENCY,
+            "razorpay_order_id": order_id,
+            "razorpay_payment_id": payment_id,
+            "payment_status": "paid",
+            "booking_status": "confirmed",
+        }
+        if departure_date:
+            booking_row["departure_date"] = departure_date
+        booking, created = _insert_booking(booking_row)
+
+    if booking.get("user_id") != user_id:
+        logger.warning(
+            "booking for payment_id=%s belongs to another user (requester=%s)",
+            payment_id,
+            user_id,
+        )
+        raise BookingOwnershipConflict()
+    return booking, created
 
 
 @payments_router.post("/create-order", response_model=CreateOrderResponse)
@@ -465,8 +533,7 @@ def verify_payment(
 
     order = _fetch_verified_order(body.razorpay_order_id, body.trek_id, user_id)
     trek_id = order["notes"]["trek_id"]
-    amount_inr = TREK_PRICES[trek_id]
-    if body.amount is not None and float(body.amount) != float(amount_inr):
+    if body.amount is not None and float(body.amount) != float(TREK_PRICES[trek_id]):
         raise HTTPException(status_code=400, detail="Invalid payment amount.")
 
     # Date stored on the order at create time wins; body value covers older clients.
@@ -474,15 +541,22 @@ def verify_payment(
         body.departure_date
     )
 
-    existing = _find_booking_by_payment_id(body.razorpay_payment_id)
-    if existing:
-        if existing.get("user_id") != user_id:
-            logger.warning(
-                "verify: payment_id=%s already booked by another user (requester=%s)",
-                body.razorpay_payment_id,
-                user_id,
-            )
-            raise HTTPException(status_code=409, detail="This payment is already linked to another booking.")
+    booking, created = _record_booking(
+        user_id=user_id,
+        trek_id=trek_id,
+        order_id=body.razorpay_order_id,
+        payment_id=body.razorpay_payment_id,
+        departure_date=departure_date,
+    )
+    if not created:
+        # Already recorded (earlier verify call or the webhook), which sent the email.
+        return {
+            "success": True,
+            "booking": booking,
+            "message": "Booking already confirmed.",
+            "email_sent": False,
+            "email_to": None,
+        }
 
     # Fall back to the email on the Razorpay payment record if the account has none
     if not recipient_email and body.razorpay_payment_id:
@@ -500,47 +574,6 @@ def verify_payment(
     if not recipient_email:
         logger.warning("Booking confirmation skipped: no recipient email found.")
 
-    if existing:
-        if recipient_email:
-            background_tasks.add_task(
-                _send_confirmation_email_safe,
-                existing,
-                trek_id,
-                recipient_email,
-                resolved_customer_name,
-                existing.get("departure_date") or departure_date,
-            )
-        return {
-            "success": True,
-            "booking": existing,
-            "message": "Booking already confirmed.",
-            "email_sent": bool(recipient_email),
-            "email_to": recipient_email,
-        }
-
-    booking_row = {
-        "user_id": user_id,
-        "trek_id": trek_id,
-        "amount": amount_inr,
-        "currency": BOOKING_CURRENCY,
-        "razorpay_order_id": body.razorpay_order_id,
-        "razorpay_payment_id": body.razorpay_payment_id,
-        "payment_status": "paid",
-        "booking_status": "confirmed",
-    }
-    if departure_date:
-        booking_row["departure_date"] = departure_date
-
-    booking = _insert_booking(booking_row)
-    if booking.get("user_id") != user_id:
-        # Insert hit the unique payment_id constraint and returned someone else's row.
-        logger.warning(
-            "verify: insert conflict returned booking for another user payment_id=%s requester=%s",
-            body.razorpay_payment_id,
-            user_id,
-        )
-        raise HTTPException(status_code=409, detail="This payment is already linked to another booking.")
-
     if recipient_email:
         background_tasks.add_task(
             _send_confirmation_email_safe,
@@ -557,3 +590,133 @@ def verify_payment(
         "email_sent": bool(recipient_email),
         "email_to": recipient_email,
     }
+
+
+WEBHOOK_BOOKING_EVENTS = ("payment.captured", "order.paid")
+
+
+def _account_contact(user_id: str) -> tuple[Optional[str], Optional[str]]:
+    """Look up the account's email and name via the Supabase Auth admin API."""
+    service_key = _get_service_role_key()
+    supabase_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
+    try:
+        response = requests.get(
+            f"{supabase_url}/auth/v1/admin/users/{user_id}",
+            headers={"apikey": service_key, "Authorization": f"Bearer {service_key}"},
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        logger.warning("webhook: account lookup failed for user_id=%s: %s", user_id, exc)
+        return None, None
+    if response.status_code != 200:
+        logger.warning("webhook: account lookup status=%s for user_id=%s", response.status_code, user_id)
+        return None, None
+    account = response.json() or {}
+    return account.get("email"), (account.get("user_metadata") or {}).get("full_name")
+
+
+def _webhook_entity(payload: dict[str, Any], name: str) -> dict[str, Any]:
+    entity = (payload.get(name) or {}).get("entity")
+    return entity if isinstance(entity, dict) else {}
+
+
+def _handle_webhook(
+    raw_body: bytes,
+    signature: Optional[str],
+    background_tasks: BackgroundTasks,
+) -> dict[str, Any]:
+    secret = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "").strip()
+    if not secret or _missing_env():
+        logger.error("webhook: RAZORPAY_WEBHOOK_SECRET or payment env missing")
+        raise HTTPException(status_code=500, detail="Webhook is not configured.")
+
+    if not signature or not verify_webhook_signature(raw_body, signature, secret):
+        logger.warning("webhook: invalid signature")
+        raise HTTPException(status_code=400, detail="Invalid webhook signature.")
+
+    try:
+        event = json.loads(raw_body)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid webhook payload.") from exc
+
+    event_type = event.get("event") if isinstance(event, dict) else None
+    if event_type not in WEBHOOK_BOOKING_EVENTS:
+        logger.info("webhook: ignoring event=%s", event_type)
+        return {"status": "ignored"}
+
+    payload = event.get("payload") or {}
+    payment = _webhook_entity(payload, "payment")
+    order = _webhook_entity(payload, "order")
+    payment_id = payment.get("id")
+    order_id = payment.get("order_id") or order.get("id")
+
+    # 2xx for events we can never act on, so Razorpay stops retrying them.
+    if not payment_id or not order_id:
+        logger.warning("webhook: event=%s missing payment/order id", event_type)
+        return {"status": "ignored"}
+    if payment.get("status") != "captured":
+        logger.info("webhook: event=%s payment_id=%s status=%s not captured", event_type, payment_id, payment.get("status"))
+        return {"status": "ignored"}
+
+    # order.paid embeds the order; payment.captured does not, so fetch it (502 lets Razorpay retry).
+    if order.get("id") != order_id:
+        order = _fetch_order(order_id)
+
+    mismatches = _order_mismatches(order)
+    if payment.get("amount") != order.get("amount"):
+        mismatches.append("payment_amount")
+    if payment.get("currency") != BOOKING_CURRENCY:
+        mismatches.append("payment_currency")
+    if mismatches:
+        logger.error(
+            "webhook: captured payment does not match a valid booking order payment_id=%s order_id=%s fields=%s",
+            payment_id,
+            order_id,
+            ",".join(mismatches),
+        )
+        return {"status": "rejected"}
+
+    notes = order["notes"]
+    trek_id = notes["trek_id"]
+    user_id = notes["user_id"]
+
+    try:
+        booking, created = _record_booking(
+            user_id=user_id,
+            trek_id=trek_id,
+            order_id=order_id,
+            payment_id=payment_id,
+            departure_date=_parse_departure_date(notes.get("departure_date")),
+        )
+    except BookingOwnershipConflict:
+        logger.error("webhook: payment_id=%s already booked under another user", payment_id)
+        return {"status": "conflict"}
+
+    if created:
+        recipient_email, customer_name = _account_contact(user_id)
+        recipient_email = recipient_email or payment.get("email")
+        if recipient_email:
+            background_tasks.add_task(
+                _send_confirmation_email_safe,
+                booking,
+                trek_id,
+                recipient_email,
+                customer_name,
+                booking.get("departure_date"),
+            )
+        else:
+            logger.warning("Booking confirmation skipped: no recipient email found.")
+
+    logger.info("webhook: event=%s payment_id=%s created=%s", event_type, payment_id, created)
+    return {"status": "ok", "created": created, "booking_id": booking.get("id")}
+
+
+@payments_router.post("/webhook")
+async def razorpay_webhook(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    x_razorpay_signature: Optional[str] = Header(None),
+):
+    # Signature covers the exact raw bytes, so read the body before any parsing.
+    raw_body = await request.body()
+    return await run_in_threadpool(_handle_webhook, raw_body, x_razorpay_signature, background_tasks)

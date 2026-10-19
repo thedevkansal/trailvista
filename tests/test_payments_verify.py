@@ -131,8 +131,10 @@ def test_existing_booking_of_same_user_returned(harness):
 
     assert resp.status_code == 200
     assert resp.json()["booking"]["id"] == "booking-mine"
+    assert resp.json()["email_sent"] is False
     assert supabase.inserted == []
-    assert harness.email_recipients == [USER_EMAIL]
+    # Whoever created the booking already sent the confirmation.
+    assert harness.sent_emails == []
 
 
 def test_repeat_verify_is_idempotent(harness):
@@ -145,6 +147,40 @@ def test_repeat_verify_is_idempotent(harness):
     assert second.status_code == 200
     assert len(supabase.inserted) == 1
     assert first.json()["booking"]["id"] == second.json()["booking"]["id"]
+    assert harness.email_recipients == [USER_EMAIL]
+
+
+class LookupMissesRow:
+    """Simulates the race where the lookup misses a row that another request
+    (verify or webhook) inserts just before our insert hits the unique constraint."""
+
+    def __init__(self, supabase):
+        self.supabase = supabase
+        self.lookups = 0
+
+    def get(self, url, params=None, headers=None, timeout=None):
+        self.lookups += 1
+        if self.lookups == 1:
+            from tests.conftest import FakeResponse
+
+            return FakeResponse(200, [])
+        return self.supabase.get(url, params=params, headers=headers, timeout=timeout)
+
+
+@pytest.mark.parametrize("owner,expected_status", [(USER_ID, 200), (OTHER_USER_ID, 409)])
+def test_insert_conflict_race(harness, monkeypatch, owner, expected_status):
+    import payments
+
+    existing = {"id": "booking-race", "user_id": owner, "trek_id": CHEAP_TREK, "razorpay_payment_id": PAYMENT_ID}
+    supabase = harness.configure(make_order(), existing=existing)
+    racer = LookupMissesRow(supabase)
+    monkeypatch.setattr(payments.requests, "get", racer.get)
+
+    resp = harness.client.post("/payments/verify", json=verify_body())
+
+    assert resp.status_code == expected_status
+    assert supabase.inserted == []
+    assert harness.sent_emails == []
 
 
 def test_happy_path_books_order_trek_and_emails_jwt_address(harness):
