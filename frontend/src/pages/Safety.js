@@ -1,161 +1,102 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Shield, Heart, Thermometer, Award, Users, TrendingUp, AlertTriangle, Phone } from 'lucide-react';
+import { Shield, Heart, Thermometer, Award, Users, TrendingUp, Phone } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
+import { SectionHeader } from '../components/HomeSections';
+import { FadeIn } from '../components/motion';
+
+const FEATURES = [
+  { icon: Heart, title: 'Medical support', desc: 'Oxygen cylinders, first-aid kits and trained medical responders on every trek.' },
+  { icon: Users, title: 'Certified guides', desc: 'Trek leaders with mountaineering certifications and wilderness first-aid training.' },
+  { icon: Shield, title: 'Emergency protocol', desc: 'Quick evacuation procedures and an emergency response team on call around the clock.' },
+  { icon: Thermometer, title: 'Weather monitoring', desc: 'Daily forecasts and route adjustments when conditions change.' },
+  { icon: Award, title: 'Quality equipment', desc: 'Four-season tents, rated sleeping bags and technical safety gear.' },
+  { icon: TrendingUp, title: 'Small groups', desc: 'Batches of twelve for personal attention and safer management on the trail.' },
+];
+
+const PROTOCOLS = [
+  {
+    title: 'Before the trek',
+    items: [
+      'A medical questionnaire to assess fitness for altitude',
+      'Pre-trek briefing on safety protocols and trail etiquette',
+      'Equipment check and handover of safety gear',
+      'An acclimatisation schedule for high-altitude routes',
+    ],
+  },
+  {
+    title: 'On the trail',
+    items: [
+      'Oxygen saturation and pulse checks every morning and evening',
+      'An experienced trek leader and support staff with the group at all times',
+      'Gradual ascent with proper acclimatisation days',
+      'Satellite and radio communication for emergencies',
+      'Route changes based on weather conditions',
+    ],
+  },
+  {
+    title: 'If something goes wrong',
+    items: [
+      'A 24/7 emergency helpline with instant response',
+      'Evacuation plans, including helicopter rescue arrangements',
+      'Tie-ups with local hospitals and medical facilities',
+      'Comprehensive travel insurance recommended for every trekker',
+    ],
+  },
+];
 
 const Safety = () => {
   return (
     <div className="min-h-screen pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
-          <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">Your Safety, Our Priority</p>
-          <h1 className="text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
-            SAFETY <span className="text-[#38BDF8]">PROTOCOLS</span>
-          </h1>
-          <p className="text-[#94A3B8] text-lg max-w-3xl mx-auto">
-            Comprehensive safety measures to ensure your Himalayan adventure is both thrilling and secure
-          </p>
-        </motion.div>
+        <PageHeader lines={['How we keep', 'you safe']}>
+          <p>Every protocol below runs on every departure, from a weekend trek to a 6,000 m summit.</p>
+        </PageHeader>
 
-        {/* Key Safety Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {[
-            { icon: Heart, title: 'Medical Support', desc: 'Oxygen cylinders, first-aid kits, and trained medical responders on every trek' },
-            { icon: Users, title: 'Certified Guides', desc: 'Experienced trek leaders with mountaineering certifications and wilderness first-aid training' },
-            { icon: Shield, title: 'Emergency Protocol', desc: 'Quick evacuation procedures and 24/7 emergency response team' },
-            { icon: Thermometer, title: 'Weather Monitoring', desc: 'Real-time weather tracking and route adjustments for safety' },
-            { icon: Award, title: 'Quality Equipment', desc: 'High-quality tents, sleeping bags, and safety gear' },
-            { icon: TrendingUp, title: 'Small Group Size', desc: 'Limited group sizes for personalized attention and better safety management' }
-          ].map((feature, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-[#071827] border border-white/10 rounded-2xl p-6"
-            >
-              <div className="w-14 h-14 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mb-4">
-                <feature.icon className="h-7 w-7 text-[#38BDF8]" />
-              </div>
-              <h3 className="text-white font-bold text-lg mb-2">{feature.title}</h3>
-              <p className="text-[#94A3B8] text-sm leading-relaxed">{feature.desc}</p>
-            </motion.div>
+        {/* Key safety features */}
+        <section className="mb-24 grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((feature, index) => (
+            <FadeIn key={feature.title} delay={0.05 * (index % 3)} className="border-t border-white/10 pt-6">
+              <feature.icon className="h-5 w-5 text-[#38BDF8]" />
+              <h2 className="mt-4 font-display text-xl font-medium text-white">{feature.title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-[#94A3B8]">{feature.desc}</p>
+            </FadeIn>
           ))}
-        </div>
+        </section>
 
-        {/* Detailed Protocols */}
-        <div className="space-y-8 mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-[#071827] border border-white/10 rounded-2xl p-8"
-          >
-            <h2 className="text-2xl font-black text-white hero-text uppercase mb-6">
-              PRE-TREK <span className="text-[#38BDF8]">PREPARATION</span>
-            </h2>
-            <ul className="space-y-3 text-[#94A3B8]">
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Comprehensive medical questionnaire to assess fitness levels</span>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Pre-trek briefing covering safety protocols, do's and don'ts</span>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Equipment check and distribution of safety gear</span>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Acclimatization schedule for high-altitude treks</span>
-              </li>
-            </ul>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-[#071827] border border-white/10 rounded-2xl p-8"
-          >
-            <h2 className="text-2xl font-black text-white hero-text uppercase mb-6">
-              DURING THE <span className="text-[#38BDF8]">TREK</span>
-            </h2>
-            <ul className="space-y-3 text-[#94A3B8]">
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Regular health check-ups and monitoring of oxygen saturation levels</span>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Experienced trek leader and support staff always present</span>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Gradual ascent with proper acclimatization days</span>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Communication devices for emergency situations</span>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Route adjustments based on weather conditions</span>
-              </li>
-            </ul>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-[#071827] border border-white/10 rounded-2xl p-8"
-          >
-            <h2 className="text-2xl font-black text-white hero-text uppercase mb-6">
-              EMERGENCY <span className="text-[#38BDF8]">RESPONSE</span>
-            </h2>
-            <ul className="space-y-3 text-[#94A3B8]">
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>24/7 emergency helpline with instant response capability</span>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Evacuation procedures including helicopter rescue arrangements</span>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Tie-ups with local hospitals and medical facilities</span>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-[#38BDF8] mt-1">•</span>
-                <span>Comprehensive insurance coverage recommended</span>
-              </li>
-            </ul>
-          </motion.div>
-        </div>
-
-        {/* Emergency Contact */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="bg-gradient-to-r from-[#F97316] to-[#ea580c] rounded-2xl p-8 text-center"
-        >
-          <AlertTriangle className="h-12 w-12 text-white mx-auto mb-4" />
-          <h3 className="text-2xl font-black text-white hero-text uppercase mb-4">24/7 EMERGENCY HELPLINE</h3>
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <Phone className="h-6 w-6 text-white" />
-            <a href="tel:+919876543210" className="text-3xl font-bold text-white">+91 98765 43210</a>
+        {/* Detailed protocols */}
+        <section className="mb-24">
+          <SectionHeader lines={['Protocols, stage', 'by stage']} />
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            {PROTOCOLS.map((block, i) => (
+              <FadeIn key={block.title} delay={0.08 * i} className="rounded-3xl border border-white/10 bg-[#071827] p-7 sm:p-8">
+                <p className="tv-num font-display text-sm font-medium text-[#94A3B8]">0{i + 1}</p>
+                <h3 className="mt-3 font-display text-2xl font-medium tracking-tight text-white">{block.title}</h3>
+                <ul className="mt-6 space-y-3 text-[#94A3B8]">
+                  {block.items.map((item) => (
+                    <li key={item} className="flex items-start gap-3">
+                      <span className="mt-2.5 h-1 w-1 flex-shrink-0 rounded-full bg-[#38BDF8]" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </FadeIn>
+            ))}
           </div>
-          <p className="text-white/90">Available round-the-clock for all trekking emergencies</p>
-        </motion.div>
+        </section>
+
+        {/* Emergency contact */}
+        <FadeIn className="grid grid-cols-1 gap-8 rounded-[28px] border border-white/10 bg-[#071827] p-8 sm:p-12 lg:grid-cols-12 lg:items-end">
+          <div className="lg:col-span-7">
+            <h2 className="font-display text-3xl font-medium tracking-tight text-white sm:text-4xl">24/7 emergency helpline</h2>
+            <p className="mt-3 text-[#94A3B8]">Answered round the clock for anyone on a TrailVista trek, and for their families at home.</p>
+          </div>
+          <div className="lg:col-span-5 lg:text-right">
+            <a href="tel:+919876543210" className="tv-btn-primary h-12 px-7 text-sm">
+              <Phone className="h-4 w-4" />
+              <span className="tv-num">+91 98765 43210</span>
+            </a>
+          </div>
+        </FadeIn>
       </div>
     </div>
   );
