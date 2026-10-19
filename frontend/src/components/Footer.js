@@ -1,111 +1,114 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Youtube, ArrowRight } from 'lucide-react';
+
+const linkClass = 'text-sm text-[#94A3B8] transition-colors hover:text-white';
+
+const SOCIAL = [
+  { href: 'https://facebook.com', icon: Facebook, label: 'Facebook', testid: 'footer-facebook-link' },
+  { href: 'https://instagram.com', icon: Instagram, label: 'Instagram', testid: 'footer-instagram-link' },
+  { href: 'https://twitter.com', icon: Twitter, label: 'Twitter', testid: 'footer-twitter-link' },
+  { href: 'https://youtube.com', icon: Youtube, label: 'YouTube', testid: 'footer-youtube-link' },
+];
 
 const Footer = () => {
   return (
-    <footer className="tv-footer bg-[#071827] border-t border-white/10 tv-divider pt-10 pb-6 md:pt-16 md:pb-8">
+    <footer className="tv-footer bg-[#071827] border-t border-white/10 tv-divider pt-16 pb-8 md:pt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-6 md:gap-8 mb-8 md:mb-12">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-12 lg:gap-8">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-1 lg:col-span-1">
-            <div className="flex items-center space-x-3 mb-3 md:mb-4">
-              <img 
-                src="/logo.png" 
-                alt="TrailVista Expeditions" 
-                className="h-10 w-auto object-contain"
-              />
+          <div className="col-span-2 lg:col-span-5">
+            <div className="flex items-center space-x-3">
+              <img src="/logo.png" alt="TrailVista Expeditions" className="h-10 w-auto object-contain" />
               <span className="text-xl font-bold hero-text tv-text-primary text-white">TRAILVI<span className="text-[#38BDF8]">STA</span></span>
             </div>
-            <p className="text-[#94A3B8] text-sm leading-relaxed mb-4 md:mb-5">
-              India's most trusted Himalayan expedition platform. We design transformative trekking and high-altitude experiences with a relentless focus on safety, transparency, and authentic mountain culture.
+            <p className="mt-6 max-w-sm font-display text-2xl font-medium leading-[1.2] tracking-tight text-white sm:text-3xl">
+              Small groups, certified leaders, Himalayan trails since 2015.
             </p>
-            <div className="flex space-x-3">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-[#38BDF8]/10 hover:border-[#38BDF8] flex items-center justify-center text-[#94A3B8] hover:text-[#38BDF8] transition-all" data-testid="footer-facebook-link">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-[#38BDF8]/10 hover:border-[#38BDF8] flex items-center justify-center text-[#94A3B8] hover:text-[#38BDF8] transition-all" data-testid="footer-instagram-link">
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-[#38BDF8]/10 hover:border-[#38BDF8] flex items-center justify-center text-[#94A3B8] hover:text-[#38BDF8] transition-all" data-testid="footer-twitter-link">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-[#38BDF8]/10 hover:border-[#38BDF8] flex items-center justify-center text-[#94A3B8] hover:text-[#38BDF8] transition-all" data-testid="footer-youtube-link">
-                <Youtube className="h-5 w-5" />
-              </a>
-            </div>
-          </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-white font-bold mb-3 md:mb-4">Quick Links</h3>
-            <ul className="space-y-1.5 md:space-y-2">
-              <li><Link to="/treks" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-all-treks-link">All Treks</Link></li>
-              <li><Link to="/expeditions" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-expeditions-link">Expeditions</Link></li>
-              <li><Link to="/gallery" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-gallery-link">Gallery</Link></li>
-              <li><Link to="/reviews" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-reviews-link">Reviews</Link></li>
-              <li><Link to="/blog" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-blog-link">Blog</Link></li>
-              <li><Link to="/faq" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm" data-testid="footer-faq-link">FAQ</Link></li>
-            </ul>
-          </div>
-
-          {/* Trek Categories */}
-          <div>
-            <h3 className="text-white font-bold mb-3 md:mb-4">Trek Categories</h3>
-            <ul className="space-y-1.5 md:space-y-2">
-              <li><Link to="/categories/beginner" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm">Beginner Treks</Link></li>
-              <li><Link to="/categories/winter" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm">Winter Treks</Link></li>
-              <li><Link to="/categories/summer" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm">Summer Treks</Link></li>
-              <li><Link to="/categories/weekend" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm">Weekend Treks</Link></li>
-              <li><Link to="/categories/high-altitude" className="text-[#94A3B8] hover:text-[#38BDF8] transition-colors text-sm">High Altitude Treks</Link></li>
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div className="col-span-2 md:col-span-1 lg:col-span-1">
-            <h3 className="text-white font-bold mb-3 md:mb-4">Contact Us</h3>
-            <ul className="space-y-2 md:space-y-3">
-              <li className="flex items-start space-x-2 text-[#94A3B8] text-sm">
-                <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
-                <span>123 Mountain Road, Dehradun, Uttarakhand 248001</span>
-              </li>
-              <li className="flex items-center space-x-2 text-[#94A3B8] text-sm">
-                <Phone className="h-4 w-4 flex-shrink-0" />
-                <span>+91 98765 43210</span>
-              </li>
-              <li className="flex items-center space-x-2 text-[#94A3B8] text-sm">
-                <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>hello@trailvista.com</span>
-              </li>
-            </ul>
-            <div className="mt-4 md:mt-6">
-              <h4 className="text-white font-semibold text-sm mb-2">Newsletter</h4>
-              <div className="flex">
-                <input 
-                  type="email" 
-                  placeholder="Your email"
-                  className="flex-1 px-4 py-2 bg-[#020617] border border-white/10 rounded-l-lg text-white text-sm focus:outline-none focus:border-[#38BDF8]"
+            <form className="mt-8 max-w-sm" onSubmit={(e) => e.preventDefault()}>
+              <label htmlFor="footer-newsletter" className="text-sm font-medium text-white">
+                New departures and trail notes, once a month
+              </label>
+              <div className="relative mt-3">
+                <input
+                  id="footer-newsletter"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  className="h-12 w-full rounded-full border border-white/10 bg-[#020617] pl-5 pr-14 text-sm text-white placeholder:text-[#94A3B8]/60 hover:border-white/20 focus:border-[#38BDF8] focus:outline-none"
                   data-testid="footer-newsletter-input"
                 />
-                <button className="bg-[#38BDF8] hover:bg-[#0ea5e9] px-4 py-2 rounded-r-lg transition-colors" data-testid="footer-newsletter-button">
-                  <Mail className="h-4 w-4 text-white" />
+                <button
+                  type="submit"
+                  aria-label="Subscribe"
+                  className="tv-btn-primary absolute right-1.5 top-1/2 h-9 w-9 -translate-y-1/2"
+                  data-testid="footer-newsletter-button"
+                >
+                  <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
+            </form>
+          </div>
+
+          {/* Explore */}
+          <nav aria-label="Explore" className="lg:col-span-2 lg:col-start-7">
+            <h3 className="text-sm font-semibold text-white">Explore</h3>
+            <ul className="mt-4 space-y-3">
+              <li><Link to="/treks" className={linkClass} data-testid="footer-all-treks-link">All treks</Link></li>
+              <li><Link to="/expeditions" className={linkClass} data-testid="footer-expeditions-link">Expeditions</Link></li>
+              <li><Link to="/gallery" className={linkClass} data-testid="footer-gallery-link">Gallery</Link></li>
+              <li><Link to="/reviews" className={linkClass} data-testid="footer-reviews-link">Reviews</Link></li>
+              <li><Link to="/blog" className={linkClass} data-testid="footer-blog-link">Trek guides</Link></li>
+              <li><Link to="/faq" className={linkClass} data-testid="footer-faq-link">FAQ</Link></li>
+            </ul>
+          </nav>
+
+          {/* Trek categories */}
+          <nav aria-label="Trek categories" className="lg:col-span-2">
+            <h3 className="text-sm font-semibold text-white">Trek by type</h3>
+            <ul className="mt-4 space-y-3">
+              <li><Link to="/categories/beginner" className={linkClass}>Beginner treks</Link></li>
+              <li><Link to="/categories/winter" className={linkClass}>Winter treks</Link></li>
+              <li><Link to="/categories/summer" className={linkClass}>Summer treks</Link></li>
+              <li><Link to="/categories/weekend" className={linkClass}>Weekend treks</Link></li>
+              <li><Link to="/categories/high-altitude" className={linkClass}>High-altitude treks</Link></li>
+            </ul>
+          </nav>
+
+          {/* Contact */}
+          <div className="col-span-2 sm:col-span-1 lg:col-span-2">
+            <h3 className="text-sm font-semibold text-white">Contact</h3>
+            <ul className="mt-4 space-y-3 text-sm text-[#94A3B8]">
+              <li><a href="tel:+919876543210" className={`${linkClass} tv-num`}>+91 98765 43210</a></li>
+              <li><a href="mailto:hello@trailvista.com" className={linkClass}>hello@trailvista.com</a></li>
+              <li>123 Mountain Road, Dehradun, Uttarakhand 248001</li>
+            </ul>
+            <div className="mt-6 flex gap-2">
+              {SOCIAL.map(({ href, icon: Icon, label, testid }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-[#94A3B8] transition-colors hover:border-white/30 hover:text-white"
+                  data-testid={testid}
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-white/10 pt-6 mt-6 md:pt-8 md:mt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
-            <p className="text-[#94A3B8] text-sm">
-              © 2026 TrailVista Expeditions. All rights reserved.
-            </p>
-            <div className="flex space-x-6">
-              <Link to="/safety" className="text-[#94A3B8] hover:text-[#38BDF8] text-sm transition-colors" data-testid="footer-safety-link">Safety</Link>
-              <Link to="/privacy-policy" className="text-[#94A3B8] hover:text-[#38BDF8] text-sm transition-colors" data-testid="footer-privacy-policy-link">Privacy Policy</Link>
-              <Link to="/terms-and-conditions" className="text-[#94A3B8] hover:text-[#38BDF8] text-sm transition-colors" data-testid="footer-terms-link">Terms & Conditions</Link>
-            </div>
+        {/* Bottom bar */}
+        <div className="mt-16 flex flex-col gap-4 border-t border-white/10 pt-8 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm text-[#94A3B8]">© 2026 TrailVista Expeditions</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <Link to="/safety" className={linkClass} data-testid="footer-safety-link">Safety</Link>
+            <Link to="/privacy-policy" className={linkClass} data-testid="footer-privacy-policy-link">Privacy policy</Link>
+            <Link to="/terms-and-conditions" className={linkClass} data-testid="footer-terms-link">Terms and conditions</Link>
           </div>
         </div>
       </div>
