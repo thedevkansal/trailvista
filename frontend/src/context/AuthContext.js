@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { rememberRedirect } from '../lib/authRedirect';
 
 const AuthContext = createContext({});
 
@@ -16,6 +17,8 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const initialSessionResolved = useRef(false);
+  // Id of the user whose profile we currently want; stale fetches are ignored.
+  const activeUserId = useRef(null);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(() => {
     try {
       const pathname = window.location.pathname;
@@ -33,7 +36,7 @@ export const AuthProvider = ({ children }) => {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching profile:', error);
@@ -42,22 +45,27 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  const applyUserFromSession = (authSession, profile) => {
-    if (!authSession?.user) {
-      setUser(null);
-      return;
-    }
-    setUser({ ...authSession.user, profile: profile ?? null });
+  const clearUser = () => {
+    activeUserId.current = null;
+    setUser(null);
   };
 
   const syncProfileForSession = (authSession) => {
     if (!authSession?.user) {
-      setUser(null);
+      clearUser();
       return;
     }
     const userId = authSession.user.id;
+    activeUserId.current = userId;
+    // Show the signed-in user right away; the profile fills in when it loads.
+    setUser((prev) => ({
+      ...authSession.user,
+      profile: prev?.id === userId ? prev.profile : null,
+    }));
     fetchProfile(userId).then((profile) => {
-      applyUserFromSession(authSession, profile);
+      // A logout or account switch may have happened while this was in flight.
+      if (activeUserId.current !== userId) return;
+      setUser({ ...authSession.user, profile: profile ?? null });
     });
   };
 
@@ -71,11 +79,7 @@ export const AuthProvider = ({ children }) => {
         if (!isMounted) return;
 
         setSession(initialSession);
-        if (initialSession?.user) {
-          syncProfileForSession(initialSession);
-        } else {
-          setUser(null);
-        }
+        syncProfileForSession(initialSession);
       } catch (err) {
         console.error('Session initialization error:', err);
       } finally {
@@ -95,14 +99,14 @@ export const AuthProvider = ({ children }) => {
       if (event === 'PASSWORD_RECOVERY') {
         setIsPasswordRecovery(true);
         setSession(authSession);
-        setUser(null);
+        clearUser();
         setLoading(false);
         return;
       }
 
       if (event === 'SIGNED_OUT') {
         setSession(null);
-        setUser(null);
+        clearUser();
         setIsPasswordRecovery(false);
         setLoading(false);
         return;
@@ -115,13 +119,9 @@ export const AuthProvider = ({ children }) => {
       setSession(authSession);
       if (authSession?.user) {
         setIsPasswordRecovery(false);
-        setUser((prev) => ({
-          ...authSession.user,
-          profile: prev?.id === authSession.user.id ? prev.profile : null,
-        }));
         syncProfileForSession(authSession);
       } else {
-        setUser(null);
+        clearUser();
       }
       setLoading(false);
     });
@@ -180,27 +180,18 @@ export const AuthProvider = ({ children }) => {
       throw new Error(error.message || 'Failed to sign up.');
     }
 
-    if (data?.session && data?.user?.id) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert(
-          {
-            id: data.user.id,
-            full_name: profileDetails.fullName,
-            phone: profileDetails.phone,
-            city: profileDetails.city,
-            age: profileDetails.age ? Number(profileDetails.age) : null,
-            travel_style: profileDetails.travelStyle,
-          },
-          { onConflict: 'id' }
-        );
-
-      if (profileError) {
-        console.error('Error upserting profile client-side:', profileError);
-        throw new Error(profileError.message || 'Failed to create user profile.');
-      }
-    }
+    // The profiles row is created by the on_auth_user_created trigger
+    // (supabase/migrations/005_profiles.sql) from the metadata above.
     return data;
+  };
+
+  const signInWithGoogle = async (redirectPath = '/') => {
+    rememberRedirect(redirectPath);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) throw error;
   };
 
   const logout = async () => {
@@ -215,6 +206,7 @@ export const AuthProvider = ({ children }) => {
     login,
     syncSession,
     signup,
+    signInWithGoogle,
     logout,
     isPasswordRecovery,
     setIsPasswordRecovery,
