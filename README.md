@@ -257,7 +257,7 @@ Create a `.env` file inside the `backend/` directory:
 Follow these steps to run both the frontend and backend servers on your machine.
 
 ### Prerequisites
-- Node.js (v16+)
+- Node.js 24.x
 - Python (v3.10+)
 - Git
 
@@ -336,6 +336,7 @@ Test the backend connectivity by opening your browser to:
 ### Supabase Settings
 1. **Authentication Redirects:** Add `http://localhost:3000/auth/callback` and your production URL callback endpoints under Authentication -> URL Configuration.
 2. **SMTP configuration:** Enable custom SMTP in your Supabase dashboard to prevent email signup limits.
+3. **Keep-alive cron:** Free-tier Supabase projects pause after 7 days of inactivity. `frontend/vercel.json` schedules a daily Vercel Cron job that calls `frontend/api/keep-alive.js`, which runs a lightweight read query against Supabase. It reuses the `REACT_APP_SUPABASE_URL` / `REACT_APP_SUPABASE_ANON_KEY` env vars; optionally set `CRON_SECRET` in Vercel to lock the endpoint to cron calls only.
 
 ---
 
