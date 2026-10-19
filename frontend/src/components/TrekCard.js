@@ -2,8 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Calendar, TrendingUp, Mountain } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { nextDeparture } from '../lib/departures';
 
 const TrekCard = ({ trek }) => {
+  const next = nextDeparture(trek);
   const difficultyColor = {
     'Easy': 'bg-green-500/20 text-green-400 border border-green-500/30',
     'Moderate': 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
@@ -72,12 +74,12 @@ const TrekCard = ({ trek }) => {
 
         <div>
           {/* Price and Next Batch */}
-          {trek.nextBatch && (
+          {next && (
             <div className="mb-4 pb-4 border-b border-white/10 flex justify-between items-center">
               <div>
                 <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider mb-0.5">Next departure</p>
                 <p className="text-sm font-bold text-white">
-                  {new Date(trek.nextBatch).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {new Date(next).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </p>
               </div>
             </div>

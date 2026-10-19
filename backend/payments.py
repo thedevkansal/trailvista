@@ -3,7 +3,7 @@ import hmac
 import json
 import logging
 import os
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -294,6 +294,14 @@ def _fetch_verified_order(order_id: str, trek_id: str, user_id: str) -> dict[str
     return order
 
 
+# Treks run in India, so "today" for departure dates is the IST calendar day.
+IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def _today_ist() -> date:
+    return datetime.now(IST).date()
+
+
 def _parse_departure_date(value: Optional[str]) -> Optional[str]:
     if not value:
         return None
@@ -455,6 +463,8 @@ def create_order(body: CreateOrderRequest, user_id: str = Depends(get_current_us
     departure_date = _parse_departure_date(body.departure_date)
     if body.departure_date and body.departure_date.strip() and not departure_date:
         raise HTTPException(status_code=400, detail="Invalid departure date.")
+    if departure_date and date.fromisoformat(departure_date) < _today_ist():
+        raise HTTPException(status_code=400, detail="This departure date has already passed.")
 
     amount_inr = TREK_PRICES[body.trek_id]
     amount_paise = int(amount_inr * 100)
