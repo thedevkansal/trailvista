@@ -63,28 +63,12 @@ const Login = () => {
       setSuccessMessage(null);
       setLoading(true);
 
-      // Verify if user exists using the backend credentials endpoint
-      const backendUrl = (process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
-      const response = await fetch(`${backendUrl}/api/auth/check-user?email=${encodeURIComponent(email)}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to verify account status. Please try again.');
-      }
-      
-      const { exists } = await response.json();
-      
-      if (!exists) {
-        setError('No account found with this email. Please sign up first.');
-        setLoading(false);
-        return;
-      }
-
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/callback?type=recovery`
       });
       if (resetError) throw resetError;
 
-      setSuccessMessage('Password reset email sent.');
+      setSuccessMessage('If an account exists for this email, a password reset link is on its way.');
     } catch (err) {
       setError(err.message || 'Failed to send reset link.');
     } finally {

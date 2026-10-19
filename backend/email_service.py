@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 # Ensure environment variables are loaded immediately on import
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / ".env", override=True)
+load_dotenv(ROOT_DIR / ".env")
 
 logger = logging.getLogger(__name__)
 
