@@ -13,6 +13,14 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS age integer;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS travel_style text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
 
+-- Google sign-ins have no phone/city/age, and older profiles tables made some of
+-- these NOT NULL, which would make the signup trigger fail. Keep them optional.
+ALTER TABLE public.profiles ALTER COLUMN full_name DROP NOT NULL;
+ALTER TABLE public.profiles ALTER COLUMN phone DROP NOT NULL;
+ALTER TABLE public.profiles ALTER COLUMN city DROP NOT NULL;
+ALTER TABLE public.profiles ALTER COLUMN age DROP NOT NULL;
+ALTER TABLE public.profiles ALTER COLUMN travel_style DROP NOT NULL;
+
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
