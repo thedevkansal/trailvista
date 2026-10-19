@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  MapPin, Calendar, TrendingUp, Mountain, Users, Shield, 
-  ChevronDown, Check, X, Clock, ShieldAlert, MessageCircle, Info
+  MapPin, Calendar, TrendingUp, Mountain, Shield, 
+  ChevronDown, Check, X, ShieldAlert, MessageCircle, Info
 } from 'lucide-react';
 import EnquiryModal from '../components/EnquiryModal';
 import { treks, reviews as allReviews } from '../data/treksData';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -18,7 +18,6 @@ import { useAuth } from '../context/AuthContext';
 const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [enquiryOpen, setEnquiryOpen] = useState(false);
 
   const popularTreks = treks.slice(0, 6);
 
