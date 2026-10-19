@@ -1,4 +1,3 @@
-import os
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -8,9 +7,6 @@ import pytest
 BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
-
-os.environ.setdefault("SUPABASE_URL", "https://example.supabase.co")
-os.environ.setdefault("SUPABASE_SERVICE_ROLE_KEY", "service-role-test-key")
 
 from fastapi import FastAPI  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
@@ -38,7 +34,9 @@ VALID_TREK = {
 
 
 @pytest.fixture
-def client():
+def client(monkeypatch):
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "service-role-test-key")
     app = FastAPI()
     app.include_router(enquiries.enquiries_router, prefix="/api")
     enquiries.reset_rate_limits()
