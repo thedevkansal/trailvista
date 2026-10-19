@@ -14,11 +14,15 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const response = await fetch(`${supabaseUrl}/rest/v1/bookings?select=id&limit=1`, {
+    // public.keep_alive() is defined in supabase/migrations/003_keep_alive_rpc.sql
+    const response = await fetch(`${supabaseUrl}/rest/v1/rpc/keep_alive`, {
+      method: 'POST',
       headers: {
         apikey: anonKey,
         Authorization: `Bearer ${anonKey}`,
+        'Content-Type': 'application/json',
       },
+      body: '{}',
     });
 
     if (!response.ok) {
