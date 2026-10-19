@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import logging
 import os
+from datetime import date
 from pathlib import Path
 from typing import Any, Optional
 
@@ -24,6 +25,8 @@ logger = logging.getLogger(__name__)
 payments_router = APIRouter(prefix="/payments", tags=["payments"])
 
 _razorpay_client: Optional[razorpay.Client] = None
+
+BOOKING_CURRENCY = "INR"
 
 REQUIRED_ENV = (
     "RAZORPAY_KEY_ID",
@@ -149,7 +152,8 @@ async def get_current_user_id(authorization: Optional[str] = Header(None)) -> st
 
 class CreateOrderRequest(BaseModel):
     trek_id: str = Field(..., min_length=1)
-    currency: str = "INR"
+    # Accepted for backwards compatibility with the frontend; ignored — orders are always INR.
+    currency: Optional[str] = None
 
 
 class CreateOrderResponse(BaseModel):
@@ -224,6 +228,64 @@ def verify_razorpay_signature(order_id: str, payment_id: str, signature: str, se
     payload = f"{order_id}|{payment_id}"
     expected = hmac.new(secret.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature)
+
+
+def _fetch_verified_order(order_id: str, trek_id: str, user_id: str) -> dict[str, Any]:
+    """Fetch the Razorpay order and confirm it was created by create_order for this
+    user and trek at the server-side price. The signature only proves order/payment
+    pairing, so the order itself is the source of truth for what was paid for."""
+    try:
+        order = get_razorpay_client().order.fetch(order_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Razorpay order fetch failed for order_id=%s: %s", order_id, exc)
+        raise HTTPException(status_code=502, detail="Unable to verify payment order.") from exc
+
+    if not isinstance(order, dict):
+        logger.error("Razorpay order fetch returned unexpected payload for order_id=%s", order_id)
+        raise HTTPException(status_code=502, detail="Unable to verify payment order.")
+
+    notes = order.get("notes")
+    if not isinstance(notes, dict):
+        notes = {}
+
+    order_trek_id = notes.get("trek_id")
+    order_user_id = notes.get("user_id")
+    expected_amount = TREK_PRICES.get(order_trek_id) if order_trek_id else None
+
+    mismatches = []
+    if order_trek_id != trek_id:
+        mismatches.append("trek_id")
+    if order_user_id != user_id:
+        mismatches.append("user_id")
+    if expected_amount is None or order.get("amount") != int(expected_amount * 100):
+        mismatches.append("amount")
+    if order.get("currency") != BOOKING_CURRENCY:
+        mismatches.append("currency")
+
+    if mismatches:
+        logger.warning(
+            "Razorpay order mismatch order_id=%s fields=%s request_trek_id=%s order_trek_id=%s user_id=%s",
+            order_id,
+            ",".join(mismatches),
+            trek_id,
+            order_trek_id,
+            user_id,
+        )
+        raise HTTPException(status_code=400, detail="Payment verification failed.")
+
+    return order
+
+
+def _parse_departure_date(value: Optional[str]) -> Optional[str]:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value.strip()[:10]).isoformat()
+    except ValueError:
+        logger.warning("Ignoring invalid departure_date=%r", value)
+        return None
 
 
 def _find_booking_by_payment_id(payment_id: str) -> Optional[dict[str, Any]]:
@@ -330,7 +392,7 @@ async def create_order(body: CreateOrderRequest, user_id: str = Depends(get_curr
 
     amount_inr = TREK_PRICES[body.trek_id]
     amount_paise = int(amount_inr * 100)
-    currency = (body.currency or "INR").upper()
+    currency = BOOKING_CURRENCY
 
     key_id = os.environ.get("RAZORPAY_KEY_ID")
     client = get_razorpay_client()
@@ -367,10 +429,10 @@ async def verify_payment(
 ):
     user_id = user["id"]
     jwt_email = user.get("email")
-    jwt_name = user.get("user_metadata", {}).get("full_name")
+    jwt_name = (user.get("user_metadata") or {}).get("full_name")
 
-    # Priority resolution of customer email
-    recipient_email = body.user_email or jwt_email
+    # Confirmation goes only to the authenticated account's email, never a client-supplied address.
+    recipient_email = jwt_email
     resolved_customer_name = body.customer_name or jwt_name
 
     logger.info(
@@ -388,10 +450,6 @@ async def verify_payment(
     if body.trek_id not in TREK_PRICES:
         raise HTTPException(status_code=400, detail="Invalid trek.")
 
-    amount_inr = TREK_PRICES[body.trek_id]
-    if body.amount is not None and float(body.amount) != float(amount_inr):
-        raise HTTPException(status_code=400, detail="Invalid payment amount.")
-
     key_secret = os.environ.get("RAZORPAY_KEY_SECRET")
     if not verify_razorpay_signature(
         body.razorpay_order_id,
@@ -404,7 +462,25 @@ async def verify_payment(
 
     logger.info("Razorpay signature valid for payment_id=%s", body.razorpay_payment_id)
 
-    # Fetch customer details from Razorpay as fallback if email is still missing
+    order = _fetch_verified_order(body.razorpay_order_id, body.trek_id, user_id)
+    trek_id = order["notes"]["trek_id"]
+    amount_inr = TREK_PRICES[trek_id]
+    if body.amount is not None and float(body.amount) != float(amount_inr):
+        raise HTTPException(status_code=400, detail="Invalid payment amount.")
+
+    departure_date = _parse_departure_date(body.departure_date)
+
+    existing = _find_booking_by_payment_id(body.razorpay_payment_id)
+    if existing:
+        if existing.get("user_id") != user_id:
+            logger.warning(
+                "verify: payment_id=%s already booked by another user (requester=%s)",
+                body.razorpay_payment_id,
+                user_id,
+            )
+            raise HTTPException(status_code=409, detail="This payment is already linked to another booking.")
+
+    # Fall back to the email on the Razorpay payment record if the account has none
     if not recipient_email and body.razorpay_payment_id:
         try:
             client = get_razorpay_client()
@@ -412,7 +488,7 @@ async def verify_payment(
             if payment_info and isinstance(payment_info, dict):
                 recipient_email = payment_info.get("email")
                 if not resolved_customer_name:
-                    resolved_customer_name = payment_info.get("notes", {}).get("name") or payment_info.get("email", "").split("@")[0]
+                    resolved_customer_name = (payment_info.get("notes") or {}).get("name") or (payment_info.get("email") or "").split("@")[0]
                 logger.info("Resolved email from Razorpay payment record: %s", recipient_email)
         except Exception as exc:
             logger.warning("Failed to fetch payment details from Razorpay: %s", exc)
@@ -420,16 +496,15 @@ async def verify_payment(
     if not recipient_email:
         logger.warning("Booking confirmation skipped: no recipient email found.")
 
-    existing = _find_booking_by_payment_id(body.razorpay_payment_id)
     if existing:
         if recipient_email:
             background_tasks.add_task(
                 _send_confirmation_email_safe,
                 existing,
-                body.trek_id,
+                trek_id,
                 recipient_email,
                 resolved_customer_name,
-                body.departure_date,
+                existing.get("departure_date") or departure_date,
             )
         return {
             "success": True,
@@ -441,24 +516,35 @@ async def verify_payment(
 
     booking_row = {
         "user_id": user_id,
-        "trek_id": body.trek_id,
+        "trek_id": trek_id,
         "amount": amount_inr,
-        "currency": "INR",
+        "currency": BOOKING_CURRENCY,
         "razorpay_order_id": body.razorpay_order_id,
         "razorpay_payment_id": body.razorpay_payment_id,
         "payment_status": "paid",
         "booking_status": "confirmed",
     }
+    if departure_date:
+        booking_row["departure_date"] = departure_date
 
     booking = _insert_booking(booking_row)
+    if booking.get("user_id") != user_id:
+        # Insert hit the unique payment_id constraint and returned someone else's row.
+        logger.warning(
+            "verify: insert conflict returned booking for another user payment_id=%s requester=%s",
+            body.razorpay_payment_id,
+            user_id,
+        )
+        raise HTTPException(status_code=409, detail="This payment is already linked to another booking.")
+
     if recipient_email:
         background_tasks.add_task(
             _send_confirmation_email_safe,
             booking,
-            body.trek_id,
+            trek_id,
             recipient_email,
             resolved_customer_name,
-            body.departure_date,
+            departure_date,
         )
     return {
         "success": True,
