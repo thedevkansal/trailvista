@@ -3,12 +3,14 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { safeRedirectPath } from '../lib/authRedirect';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 import { LogIn, ShieldAlert, Eye, EyeOff, Mail, ArrowLeft, CheckCircle2, Lock, Loader2 } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { syncSession } = useAuth();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState(location.state?.email || '');
   const [password, setPassword] = useState('');
@@ -18,7 +20,7 @@ const Login = () => {
   const [mode, setMode] = useState(location.state?.mode || 'login'); // 'login' or 'forgot'
   const [successMessage, setSuccessMessage] = useState(null);
 
-  const redirectPath = location.state?.from || '/';
+  const redirectPath = safeRedirectPath(location.state?.from);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,10 +32,7 @@ const Login = () => {
     try {
       setError(null);
       setLoading(true);
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-      if (signInError) throw signInError;
-
-      await syncSession();
+      await login(email, password);
       navigate(redirectPath, { replace: true });
     } catch (err) {
       const errMsg = err.message || '';
@@ -63,28 +62,12 @@ const Login = () => {
       setSuccessMessage(null);
       setLoading(true);
 
-      // Verify if user exists using the backend credentials endpoint
-      const backendUrl = (process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
-      const response = await fetch(`${backendUrl}/api/auth/check-user?email=${encodeURIComponent(email)}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to verify account status. Please try again.');
-      }
-      
-      const { exists } = await response.json();
-      
-      if (!exists) {
-        setError('No account found with this email. Please sign up first.');
-        setLoading(false);
-        return;
-      }
-
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/callback?type=recovery`
       });
       if (resetError) throw resetError;
 
-      setSuccessMessage('Password reset email sent.');
+      setSuccessMessage('If an account exists for this email, a password reset link is on its way.');
     } catch (err) {
       setError(err.message || 'Failed to send reset link.');
     } finally {
@@ -147,6 +130,7 @@ const Login = () => {
 
           {mode === 'login' ? (
             <form onSubmit={handleSubmit} className="space-y-5">
+              <GoogleSignInButton redirectPath={redirectPath} onError={setError} />
               <div>
                 <label className="text-[#94A3B8] text-xs mb-2 block font-semibold uppercase tracking-wider">Email Address</label>
                 <div className="relative">

@@ -101,17 +101,19 @@ sequenceDiagram
     participant BE as FastAPI Backend
     participant SU as Supabase Auth
 
-    User->>FE: Fill email & signup password
-    FE->>BE: GET /api/auth/check-user?email=... (Admin check)
-    alt Email already exists
-        BE-->>FE: Return {exists: true}
-        FE-->>User: Show "Account already exists. Please log in."
-    else Email is new
-        BE-->>FE: Return {exists: false}
+    alt Continue with Google
+        User->>FE: Click "Continue with Google"
+        FE->>SU: signInWithOAuth(google)
+        SU-->>FE: Redirect to /auth/callback?code=...
+    else Email & password
+        User->>FE: Fill email & signup password
         FE->>SU: Create user account (signUp)
         SU-->>User: Send confirmation link to email
-        FE-->>User: Show "Check your inbox to verify email"
+        FE-->>User: Show generic "Check your email" (never reveals if the email exists)
+        User->>FE: Open link, /auth/callback?code=...
     end
+    FE->>SU: supabase-js exchanges the PKCE code for a session
+    SU->>SU: on_auth_user_created trigger creates the profiles row
 ```
 
 ### Booking & Payment Flow
@@ -184,29 +186,30 @@ graph LR
 trailvista/
 ├── backend/                       # FastAPI Python Backend
 │   ├── .env                       # Backend local environment keys (never committed)
-│   ├── email_service.py           # SMTP mail client configurations & HTML templates
+│   ├── email_service.py           # Resend/SMTP delivery & HTML templates
+│   ├── enquiries.py               # Contact & trek enquiry endpoint (rate limited)
 │   ├── payments.py                # Razorpay checkout & signature verification routers
 │   ├── requirements.txt           # Python application dependencies
 │   ├── server.py                  # Main uvicorn server startup and CORS middlewares
-│   ├── trek_prices.py             # Server-side pricing catalog map
-│   └── uvicorn_start.py           # ASGI startup script
+│   └── trek_prices.py             # Server-side pricing catalog map
 ├── frontend/                      # React SPA Frontend
 │   ├── .env                       # Frontend public keys (never committed)
 │   ├── public/                    # Static assets
 │   │   ├── team/                  # Team member photos (local uploads)
 │   │   └── logo.png               # Brand logo
 │   ├── src/                       # Source files
-│   │   ├── components/            # Shared components (Navbar, Footer, UI widgets)
+│   │   ├── components/            # Shared components (Navbar, Footer, GoogleSignInButton)
 │   │   ├── context/               # AuthContext.js, ThemeContext.js
 │   │   ├── data/                  # blogData.js, treksData.js
-│   │   ├── hooks/                 # Custom React hooks
-│   │   ├── lib/                   # loadRazorpay.js, paymentService.js, supabaseClient.js
+│   │   ├── lib/                   # supabaseClient, paymentService, enquiryService, authRedirect
 │   │   ├── pages/                 # Home, AllTreks, TrekDetail, About, Blog, etc.
 │   │   ├── App.js                 # App routes registry
 │   │   ├── index.js               # React mount root
 │   │   └── index.css              # Styling sheets and theme tokens
-│   ├── craco.config.js            # Build overrides configuration
+│   ├── api/keep-alive.js          # Vercel Cron target that keeps Supabase awake
+│   ├── vercel.json                # Cron schedule & security headers
 │   └── package.json               # Frontend dependencies
+├── tests/                         # Backend pytest suites
 ├── supabase/                      # Database configuration & scripts
 │   └── migrations/                # Database tables, schemas, and policy definitions
 ├── render.yaml                    # Render cluster deployment blueprint
@@ -224,7 +227,7 @@ Create a `.env` file inside the `frontend/` directory:
 | :--- | :--- | :--- |
 | `REACT_APP_SUPABASE_URL` | Your Supabase project URL | `https://xyz.supabase.co` |
 | `REACT_APP_SUPABASE_ANON_KEY` | Supabase Client public API Key | `eyJhbGciOiJIUzI1NiIsInR...` |
-| `REACT_APP_API_BASE_URL` | Base endpoint of your backend API | `http://localhost:8000` |
+| `REACT_APP_BACKEND_URL` | Base endpoint of your backend API | `http://localhost:8000` |
 | `REACT_APP_RAZORPAY_KEY_ID` | Public Razorpay key ID | `rzp_test_xyz123` |
 
 ### Backend Configuration
@@ -246,6 +249,8 @@ Create a `.env` file inside the `backend/` directory:
 | `CORS_ORIGINS` | Permitted frontend origin hosts (comma-separated) | `http://localhost:3000` |
 | `RESEND_API_KEY` | Resend API key for production booking email delivery | `re_123456789` |
 | `EMAIL_FROM` | Verified Resend sender email address | `bookings@trailvista.com` |
+| `RAZORPAY_WEBHOOK_SECRET` | Secret set on the Razorpay webhook (`/api/payments/webhook`) | `whsec_xyz` |
+| `ENQUIRY_NOTIFY_EMAIL` | Inbox that receives contact/trek enquiries (optional) | `team@trailvista.com` |
 
 > [!CAUTION]
 > The `SUPABASE_SERVICE_ROLE_KEY` has full administrative database privileges, bypassing Row Level Security (RLS). Never add it to your frontend `.env` file. Do not commit `.env` files to git.
@@ -335,8 +340,10 @@ Test the backend connectivity by opening your browser to:
 
 ### Supabase Settings
 1. **Authentication Redirects:** Add `http://localhost:3000/auth/callback` and your production URL callback endpoints under Authentication -> URL Configuration.
-2. **SMTP configuration:** Enable custom SMTP in your Supabase dashboard to prevent email signup limits.
-3. **Keep-alive cron:** Free-tier Supabase projects pause after 7 days of inactivity. `frontend/vercel.json` schedules a daily Vercel Cron job that calls `frontend/api/keep-alive.js`, which calls the `public.keep_alive()` RPC (run `supabase/migrations/003_keep_alive_rpc.sql` once in the SQL editor). It reuses the `REACT_APP_SUPABASE_URL` / `REACT_APP_SUPABASE_ANON_KEY` env vars; optionally set `CRON_SECRET` in Vercel to lock the endpoint to cron calls only.
+2. **Migrations:** Run every file in `supabase/migrations/` in order in the SQL editor (they are safe to re-run).
+3. **Google sign-in:** Create an OAuth client (Web application) in Google Cloud Console with the redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`, then paste its client ID and secret under Authentication -> Sign In / Providers -> Google.
+4. **SMTP configuration:** Enable custom SMTP in your Supabase dashboard to prevent email signup limits.
+5. **Keep-alive cron:** Free-tier Supabase projects pause after 7 days of inactivity. `frontend/vercel.json` schedules a daily Vercel Cron job that calls `frontend/api/keep-alive.js`, which calls the `public.keep_alive()` RPC (run `supabase/migrations/003_keep_alive_rpc.sql` once in the SQL editor). It reuses the `REACT_APP_SUPABASE_URL` / `REACT_APP_SUPABASE_ANON_KEY` env vars; optionally set `CRON_SECRET` in Vercel to lock the endpoint to cron calls only.
 
 ---
 

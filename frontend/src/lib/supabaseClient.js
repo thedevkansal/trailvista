@@ -7,11 +7,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase env variables. Restart dev server and check frontend/.env');
 }
 
-const nativeFetch = (...args) => {
-  const fetchFn = window.__nativeFetch || window.fetch.bind(window);
-  return fetchFn(...args);
-};
-
 const authOptions = {
   persistSession: true,
   autoRefreshToken: true,
@@ -27,9 +22,6 @@ if (window.__supabaseInstance) {
 } else {
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: authOptions,
-    global: {
-      fetch: nativeFetch,
-    },
   });
   window.__supabaseInstance = supabaseInstance;
 }

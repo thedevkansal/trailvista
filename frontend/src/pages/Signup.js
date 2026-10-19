@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabaseClient';
+import { safeRedirectPath } from '../lib/authRedirect';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 import { UserPlus, ShieldAlert, Eye, EyeOff, CheckCircle2, User, Mail, Phone, MapPin, Calendar, ChevronDown, Lock, Loader2 } from 'lucide-react';
 
 const Signup = () => {
@@ -25,7 +26,7 @@ const Signup = () => {
   const [error, setError] = useState(null);
   const [signupSuccess, setSignupSuccess] = useState(false);
 
-  const redirectPath = location.state?.from || '/';
+  const redirectPath = safeRedirectPath(location.state?.from);
 
   const handlePhoneChange = (e) => {
     const val = e.target.value.replace(/\D/g, '');
@@ -86,33 +87,6 @@ const Signup = () => {
       setError(null);
       setLoading(true);
 
-      // Pre-flight check: Try logging in first to see if user already exists with this password
-      let preFlightExists = false;
-      try {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        if (!signInError && signInData?.user) {
-          preFlightExists = true;
-        }
-      } catch (signInErr) {
-        // Ignore and proceed to signUp if login fails
-      }
-
-      if (preFlightExists) {
-        setError('Account already exists. Please log in.');
-        setTimeout(() => {
-          navigate('/login', {
-            state: {
-              email,
-              message: 'Account already exists. Please log in.'
-            }
-          });
-        }, 3000);
-        return;
-      }
-
       const signupData = await signup(email, password, {
         fullName,
         phone: `+91${phone}`,
@@ -121,39 +95,20 @@ const Signup = () => {
         travelStyle: travelStyle || null,
       });
 
-      // If identities is empty, it means the user already exists in the database.
-      const isExistingUser = signupData?.user && (!signupData.user.identities || signupData.user.identities.length === 0);
-
-      if (isExistingUser) {
-        setError('Account already exists. Please log in.');
-        setTimeout(() => {
-          navigate('/login', {
-            state: {
-              email,
-              message: 'Account already exists. Please log in.'
-            }
-          });
-        }, 3000);
+      // With email confirmation on, Supabase returns the same response for new and
+      // existing emails (no session). Show one generic message so the form can't be
+      // used to check which emails have accounts.
+      if (signupData?.session) {
+        navigate(redirectPath, { replace: true });
       } else {
-        // If email confirmation is enabled, session will be null on signup
-        if (!signupData?.session) {
-          setSignupSuccess(true);
-        } else {
-          navigate(redirectPath, { replace: true });
-        }
+        setSignupSuccess(true);
       }
     } catch (err) {
       const errMsg = err.message || 'Failed to sign up.';
       if (errMsg.includes('already registered') || errMsg.includes('already exists')) {
-        setError('Account already exists. Please log in.');
-        setTimeout(() => {
-          navigate('/login', { 
-            state: { 
-              email, 
-              message: 'Account already exists. Please log in.' 
-            } 
-          });
-        }, 3000);
+        navigate('/login', {
+          state: { email, message: 'Account already exists. Please log in.' },
+        });
       } else {
         setError(errMsg);
       }
@@ -182,9 +137,9 @@ const Signup = () => {
               <div className="mx-auto w-16 h-16 bg-green-500/10 border border-green-500/30 rounded-full flex items-center justify-center text-green-400">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <h2 className="text-xl font-bold text-white">Account Created</h2>
+              <h2 className="text-xl font-bold text-white">Check Your Email</h2>
               <p className="text-[#94A3B8] text-sm leading-relaxed font-light">
-                Your account has been created. Please check your email to verify your account before logging in.
+                If this email isn't registered yet, we've sent a link to verify your account. Already have an account? Just log in.
               </p>
               <Link
                 to="/login"
@@ -219,6 +174,10 @@ const Signup = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              <div className="mb-4">
+                <GoogleSignInButton redirectPath={redirectPath} label="Sign up with Google" onError={setError} />
+              </div>
 
               <form onSubmit={handleSubmit} className="space-y-4 max-h-[55vh] overflow-y-auto pr-1 scrollbar-thin">
                 <div>

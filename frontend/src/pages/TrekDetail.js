@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  MapPin, Calendar, TrendingUp, Mountain, Users, Shield, 
-  ChevronDown, Check, X, Clock, ShieldAlert, MessageCircle, Info
+  MapPin, Calendar, TrendingUp, Mountain, Shield, 
+  ChevronDown, Check, X, ShieldAlert, MessageCircle, Info
 } from 'lucide-react';
 import EnquiryModal from '../components/EnquiryModal';
 import { treks, reviews as allReviews } from '../data/treksData';
@@ -110,14 +110,9 @@ const TrekDetail = () => {
     setShowBookingDialog(false);
     setPaymentLoading(true);
 
-    // Save selected departure date in local storage so verification dialog can display it
-    if (selectedDate) {
-      localStorage.setItem(`trek_selected_date_${trek.id}`, selectedDate);
-    }
-
     try {
       await loadRazorpay();
-      const order = await createPaymentOrder({ trekId: trek.id });
+      const order = await createPaymentOrder({ trekId: trek.id, departureDate: selectedDate || null });
 
       openRazorpayCheckout({
         order,
@@ -132,7 +127,6 @@ const TrekDetail = () => {
               razorpaySignature: response.razorpay_signature,
               trekId: trek.id,
               amount: trek.price,
-              userEmail: user?.email,
               customerName: user?.profile?.full_name || user?.user_metadata?.full_name,
               departureDate: selectedDate,
             });
@@ -163,14 +157,14 @@ const TrekDetail = () => {
       });
     } catch (err) {
       if (err instanceof AuthRequiredError) {
-        setPaymentError(err.message);
+        setPaymentLoading(false);
         navigate('/login', { state: { from: location.pathname } });
         return;
       }
       setPaymentError(err.message || 'Could not start payment.');
-    } finally {
       setPaymentLoading(false);
     }
+    // On success the checkout stays open; its own callbacks clear the loading state.
   };
 
   const scrollToSection = (idName) => {

@@ -1,38 +1,63 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { submitEnquiry, upcomingMonths } from '../lib/enquiryService';
+
+const EMPTY_FORM = {
+  name: '',
+  phone: '',
+  email: '',
+  travelMonth: '',
+  numberOfPeople: '1',
+  message: '',
+  website: '',
+};
 
 const EnquiryModal = ({ isOpen, onClose, trekName = '' }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    travelMonth: '',
-    numberOfPeople: '1',
-    message: ''
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const travelMonths = useMemo(() => upcomingMonths(), []);
+
+  // Close the modal a moment after a successful send.
+  useEffect(() => {
+    if (!showSuccess) return undefined;
+    const timer = setTimeout(() => {
+      setShowSuccess(false);
+      setFormData(EMPTY_FORM);
+      onClose();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [showSuccess, onClose]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      onClose();
-      setFormData({
-        name: '',
-        phone: '',
-        email: '',
-        travelMonth: '',
-        numberOfPeople: '1',
-        message: ''
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      await submitEnquiry({
+        source: 'trek',
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        trek_name: trekName || null,
+        travel_month: formData.travelMonth,
+        group_size: Number(formData.numberOfPeople) || 1,
+        message: formData.message,
+        website: formData.website,
       });
-    }, 2000);
+      setShowSuccess(true);
+    } catch (err) {
+      setSubmitError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -72,7 +97,18 @@ const EnquiryModal = ({ isOpen, onClose, trekName = '' }) => {
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4 relative">
+                  {/* Honeypot for bots; hidden from people and screen readers */}
+                  <input
+                    type="text"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleChange}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    className="absolute -left-[9999px] h-0 w-0 opacity-0"
+                  />
                   <div>
                     <label className="text-[#94A3B8] text-sm mb-2 block">Full Name *</label>
                     <input
@@ -127,12 +163,9 @@ const EnquiryModal = ({ isOpen, onClose, trekName = '' }) => {
                         data-testid="enquiry-month-select"
                       >
                         <option value="">Select month</option>
-                        <option value="February 2026">February 2026</option>
-                        <option value="March 2026">March 2026</option>
-                        <option value="April 2026">April 2026</option>
-                        <option value="May 2026">May 2026</option>
-                        <option value="June 2026">June 2026</option>
-                        <option value="July 2026">July 2026</option>
+                        {travelMonths.map((month) => (
+                          <option key={month} value={month}>{month}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -144,6 +177,7 @@ const EnquiryModal = ({ isOpen, onClose, trekName = '' }) => {
                         value={formData.numberOfPeople}
                         onChange={handleChange}
                         min="1"
+                        max="50"
                         required
                         className="w-full bg-[#020617] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#38BDF8]"
                         data-testid="enquiry-people-input"
@@ -164,12 +198,16 @@ const EnquiryModal = ({ isOpen, onClose, trekName = '' }) => {
                     />
                   </div>
 
+                  {submitError && (
+                    <p className="text-red-400 text-sm" role="alert" data-testid="enquiry-submit-error">{submitError}</p>
+                  )}
                   <button
                     type="submit"
-                    className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3 rounded-lg font-semibold transition-all active:scale-95"
+                    disabled={submitting}
+                    className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3 rounded-lg font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
                     data-testid="enquiry-submit-button"
                   >
-                    Send Enquiry
+                    {submitting ? 'Sending...' : 'Send Enquiry'}
                   </button>
                 </form>
               </>

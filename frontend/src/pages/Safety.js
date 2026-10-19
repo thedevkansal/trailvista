@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Heart, Thermometer, Award, Users, TrendingUp, AlertTriangle, Phone, Mountain } from 'lucide-react';
+import { Shield, Heart, Thermometer, Award, Users, TrendingUp, AlertTriangle, Phone } from 'lucide-react';
 
 const Safety = () => {
   return (

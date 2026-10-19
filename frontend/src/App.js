@@ -23,6 +23,7 @@ import FAQ from './pages/FAQ';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AuthCallback from './pages/AuthCallback';
+import NotFound from './pages/NotFound';
 import './App.css';
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
             <Footer />
           </div>

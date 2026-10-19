@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Lock, Database, CreditCard, Mail, FileText } from 'lucide-react';
+import { Shield, Lock, Database, CreditCard, Mail } from 'lucide-react';
 
 const PrivacyPolicy = () => {
   const sections = [
