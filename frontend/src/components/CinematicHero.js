@@ -10,7 +10,7 @@ const CinematicHero = ({
   word1 = 'CLIMB',
   word2 = 'BEYOND',
   word3 = 'LIMITS',
-  subtitle = 'HIMALAYAN EXPEDITIONS · 2026',
+  subtitle = 'Himalayan treks, 2026–27 season',
   description = 'Fixed departures. Certified leaders. Safety-first Himalayan expeditions for adventurers above the ordinary.',
   backgroundImage = 'https://images.unsplash.com/photo-1629976791862-5749e12b2f40?crop=entropy&cs=srgb&fm=jpg&q=85&w=2400',
   ctaPrimary = 'Explore Treks',
@@ -41,7 +41,7 @@ const CinematicHero = ({
         <img
           src={backgroundImage}
           alt="Himalayan mountains"
-          className="w-full h-full object-cover object-center"
+          className="tv-drift w-full h-full object-cover object-center"
           loading="eager"
         />
         {/* Cinematic vignette */}
@@ -104,7 +104,7 @@ const CinematicHero = ({
             className="absolute top-[8%] sm:top-[14%] left-[4%] sm:left-[4%] flex items-center space-x-2 sm:space-x-3"
           >
             <span className="block h-px w-8 sm:w-12 bg-[#38BDF8]" />
-            <p className="text-[#BAE6FD] text-[10px] sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] font-bold">
+            <p className="text-[#BAE6FD] text-xs sm:text-sm font-semibold">
               {subtitle}
             </p>
           </motion.div>
@@ -117,7 +117,7 @@ const CinematicHero = ({
             className="hidden md:flex absolute top-[15%] sm:top-[14%] right-[2%] sm:right-[4%] items-center space-x-2 px-4 py-2 rounded-full backdrop-blur-md bg-white/10 border border-white/20"
           >
             <MapPin className="h-3.5 w-3.5 text-[#38BDF8]" />
-            <span className="text-white text-xs font-semibold tracking-wide">HIMALAYA · 6000M+</span>
+            <span className="text-white text-xs font-semibold">Uttarakhand to Ladakh</span>
           </motion.div>
 
           {/* Right side vertical poetic line (desktop only) */}
@@ -146,16 +146,16 @@ const CinematicHero = ({
               {ctaPrimary && (
                 <button
                   onClick={onPrimaryClick}
-                  className="bg-[#F97316] hover:bg-[#ea580c] text-white px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-full text-xs sm:text-sm font-bold tracking-wide transition-all active:scale-95 shadow-[0_0_40px_-10px_#F97316]"
+                  className="tv-btn-primary h-11 sm:h-12 px-5 sm:px-7 text-sm"
                   data-testid="hero-primary-cta"
                 >
-                  {ctaPrimary} →
+                  {ctaPrimary}
                 </button>
               )}
               {ctaSecondary && (
                 <button
                   onClick={onSecondaryClick}
-                  className="border border-white/30 hover:border-white text-white px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-full text-xs sm:text-sm font-bold tracking-wide transition-all active:scale-95 backdrop-blur-md bg-white/5"
+                  className="tv-btn-ghost h-11 sm:h-12 px-5 sm:px-7 text-sm"
                   data-testid="hero-secondary-cta"
                 >
                   {ctaSecondary}

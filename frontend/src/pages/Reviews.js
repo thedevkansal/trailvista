@@ -1,7 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
-import HorizontalScrollSection from '../components/HorizontalScrollSection';
+import PageHeader from '../components/PageHeader';
+import { ReviewSpotlight, SectionHeader } from '../components/HomeSections';
+import { FadeIn, CountUp } from '../components/motion';
 import { reviews } from '../data/treksData';
 
 const Reviews = () => {
@@ -37,136 +38,67 @@ const Reviews = () => {
   ];
 
   const stats = [
-    { label: 'Average Rating', value: '4.9/5' },
-    { label: 'Total Reviews', value: '2,500+' },
-    { label: 'Happy Trekkers', value: '25,000+' },
-    { label: 'Repeat Customers', value: '40%' }
+    { label: 'average rating', value: <CountUp to={4.9} decimals={1} suffix="/5" /> },
+    { label: 'reviews', value: <CountUp to={2500} suffix="+" /> },
+    { label: 'trekkers guided', value: <CountUp to={25000} suffix="+" /> },
+    { label: 'come back for another trek', value: <CountUp to={40} suffix="%" /> }
   ];
 
   return (
     <div className="min-h-screen pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
-            TREKKER <span className="text-[#38BDF8]">REVIEWS</span>
-          </h1>
-          <p className="text-[#94A3B8] text-lg">What our adventurers say about their experiences</p>
-        </motion.div>
+        <PageHeader lines={['In their', 'own words']}>
+          <p>What trekkers say once they’re back down, unedited.</p>
+        </PageHeader>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center"
-            >
-              <p className="text-3xl font-black text-[#38BDF8] mb-2">{stat.value}</p>
-              <p className="text-[#94A3B8] text-sm">{stat.label}</p>
-            </motion.div>
+        <dl className="mb-24 grid grid-cols-2 gap-x-8 md:grid-cols-4">
+          {stats.map((stat) => (
+            <div key={stat.label} className="border-t border-white/10 py-8">
+              <dd className="font-display text-3xl font-medium tracking-tight text-white sm:text-5xl">{stat.value}</dd>
+              <dt className="mt-2 text-xs text-[#94A3B8] sm:text-sm">{stat.label}</dt>
+            </div>
           ))}
-        </div>
+        </dl>
 
-        {/* Reviews Grid */}
-        {/* Mobile: horizontal swipe */}
-        <HorizontalScrollSection>
-          {allReviews.map((review) => (
-            <motion.div
-              key={review.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-[#071827] border border-white/10 rounded-2xl p-5 h-full"
-            >
-              <div className="flex space-x-1 mb-3">
-                {[...Array(review.rating)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-[#F97316] text-[#F97316]" />
-                ))}
-              </div>
-              <p className="text-[#94A3B8] text-sm leading-relaxed mb-4">
-                "{review.review}"
-              </p>
-              <div className="flex items-center space-x-3 pt-4 border-t border-white/10">
-                <img src={review.image} alt={review.name} className="w-10 h-10 rounded-full object-cover" />
-                <div>
-                  <p className="text-white font-bold text-sm">{review.name}</p>
-                  <p className="text-[#38BDF8] text-xs">{review.trek}</p>
+        {/* Spotlight */}
+        <section className="mb-24">
+          <ReviewSpotlight reviews={allReviews.slice(0, 6)} />
+        </section>
+
+        {/* All reviews */}
+        <section>
+          <SectionHeader lines={['Every review']} />
+          <div className="columns-1 gap-5 space-y-5 md:columns-2 lg:columns-3">
+            {allReviews.map((review, i) => (
+              <FadeIn
+                key={review.id}
+                delay={0.05 * (i % 3)}
+                className="break-inside-avoid rounded-3xl border border-white/10 bg-[#071827] p-6 sm:p-7"
+              >
+                <div className="flex gap-1" aria-label={`${review.rating} out of 5`}>
+                  {[...Array(5)].map((_, s) => (
+                    <Star
+                      key={s}
+                      className={`h-4 w-4 ${s < review.rating ? 'fill-[#F2A65A] text-[#F2A65A]' : 'text-white/20'}`}
+                    />
+                  ))}
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </HorizontalScrollSection>
-
-        {/* Desktop: normal grid */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {allReviews.map((review) => (
-            <motion.div
-              key={review.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-[#071827] border border-white/10 rounded-2xl p-6"
-            >
-              {/* Rating */}
-              <div className="flex space-x-1 mb-4">
-                {[...Array(review.rating)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 fill-[#F97316] text-[#F97316]" />
-                ))}
-              </div>
-
-              {/* Review Text */}
-              <p className="text-[#94A3B8] leading-relaxed mb-6">
-                "{review.review}"
-              </p>
-
-              {/* Reviewer Info */}
-              <div className="flex items-center space-x-4 pt-6 border-t border-white/10">
-                <img
-                  src={review.image}
-                  alt={review.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-                <div>
-                  <p className="text-white font-bold">{review.name}</p>
-                  <p className="text-[#38BDF8] text-sm">{review.trek}</p>
-                  <p className="text-[#94A3B8] text-xs mt-1">
-                    {new Date(review.date).toLocaleDateString('en-IN', {
-                      month: 'short',
-                      year: 'numeric'
-                    })}
-                  </p>
+                <blockquote className="mt-5 leading-relaxed text-white">“{review.review}”</blockquote>
+                <div className="mt-6 flex items-center gap-3 border-t border-white/10 pt-5">
+                  <img src={review.image} alt="" className="h-10 w-10 rounded-full object-cover" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-white">{review.name}</p>
+                    <p className="truncate text-xs text-[#94A3B8]">
+                      {review.trek},{' '}
+                      {new Date(review.date).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Video Testimonials Placeholder */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-16 bg-[#071827] border border-white/10 rounded-2xl p-12 text-center"
-        >
-          <h2 className="text-3xl font-black text-white hero-text uppercase mb-4">
-            VIDEO <span className="text-[#38BDF8]">TESTIMONIALS</span>
-          </h2>
-          <p className="text-[#94A3B8] mb-8">Watch our trekkers share their experiences</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-[#020617] border border-white/10 rounded-xl h-48 flex items-center justify-center">
-                <p className="text-[#94A3B8]">Video Testimonial {i}</p>
-              </div>
+              </FadeIn>
             ))}
           </div>
-        </motion.div>
+        </section>
       </div>
     </div>
   );

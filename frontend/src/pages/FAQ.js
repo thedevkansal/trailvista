@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, MessageCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import PageHeader from '../components/PageHeader';
+import { FadeIn, RevealHeading, EASE_OUT } from '../components/motion';
 
 const faqCategories = [
   {
@@ -94,120 +96,113 @@ const FAQ = () => {
   return (
     <div className="min-h-screen pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">Need Answers?</p>
-          <h1 className="text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
-            FREQUENTLY ASKED <span className="text-[#38BDF8]">QUESTIONS</span>
-          </h1>
-          <p className="text-[#94A3B8] text-lg max-w-2xl mx-auto">
-            Everything you need to know about trekking with TrailVista — safety, bookings, cancellations and life on the trail.
-          </p>
-        </motion.div>
+        <PageHeader lines={['Questions,', 'answered']}>
+          <p>Safety, bookings, cancellations and life on the trail. If something isn’t covered here, ask us directly.</p>
+        </PageHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Category sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-28 bg-[#071827] border border-white/10 rounded-2xl p-4 space-y-1">
-              {faqCategories.map((cat, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => { setActiveCategory(idx); setOpenIndex(0); }}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                    activeCategory === idx
-                      ? 'bg-[#38BDF8] text-white'
-                      : 'text-[#94A3B8] hover:bg-white/5 hover:text-white'
-                  }`}
-                  data-testid={`faq-category-${idx}`}
-                >
-                  {cat.category}
-                </button>
-              ))}
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
+          {/* Category list */}
+          <div className="lg:col-span-4">
+            <div className="flex flex-wrap gap-1 lg:sticky lg:top-28 lg:flex-col" role="group" aria-label="FAQ topics">
+              {faqCategories.map((cat, idx) => {
+                const active = activeCategory === idx;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => { setActiveCategory(idx); setOpenIndex(0); }}
+                    aria-pressed={active}
+                    className={`relative rounded-full px-4 py-2 text-left text-sm font-semibold transition-colors lg:py-3 ${
+                      active ? 'text-[#020617]' : 'text-[#94A3B8] hover:text-white'
+                    }`}
+                    data-testid={`faq-category-${idx}`}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="faq-category-pill"
+                        className="absolute inset-0 rounded-full bg-white shadow-sm"
+                        transition={{ type: 'spring', stiffness: 400, damping: 34 }}
+                      />
+                    )}
+                    <span className="relative">{cat.category}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* FAQ accordions */}
-          <div className="lg:col-span-3 space-y-4">
+          {/* Questions */}
+          <div className="lg:col-span-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeCategory}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-3"
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.35, ease: EASE_OUT }}
+                className="border-t border-white/10"
               >
-                {faqCategories[activeCategory].items.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden"
-                  >
-                    <button
-                      onClick={() => setOpenIndex(openIndex === idx ? -1 : idx)}
-                      className="w-full flex items-center justify-between p-5 text-left hover:bg-white/5 transition-colors"
-                      data-testid={`faq-question-${activeCategory}-${idx}`}
-                    >
-                      <span className="text-white font-bold pr-4">{item.q}</span>
-                      <ChevronDown className={`h-5 w-5 text-[#38BDF8] flex-shrink-0 transition-transform ${openIndex === idx ? 'rotate-180' : ''}`} />
-                    </button>
-                    <AnimatePresence>
-                      {openIndex === idx && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.25 }}
-                          className="overflow-hidden"
-                        >
-                          <p className="px-5 pb-5 text-[#94A3B8] text-sm leading-relaxed">
-                            {item.a}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ))}
+                {faqCategories[activeCategory].items.map((item, idx) => {
+                  const open = openIndex === idx;
+                  return (
+                    <div key={idx} className="border-b border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setOpenIndex(open ? -1 : idx)}
+                        aria-expanded={open}
+                        className="flex w-full items-start justify-between gap-6 py-6 text-left !rounded-lg"
+                        data-testid={`faq-question-${activeCategory}-${idx}`}
+                      >
+                        <span className="font-display text-lg font-medium text-white sm:text-xl">{item.q}</span>
+                        <Plus
+                          className={`mt-1 h-5 w-5 flex-shrink-0 text-[#94A3B8] transition-transform duration-300 ${open ? 'rotate-45' : ''}`}
+                        />
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {open && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.35, ease: EASE_OUT }}
+                            className="overflow-hidden"
+                          >
+                            <p className="max-w-2xl pb-6 leading-relaxed text-[#94A3B8]">{item.a}</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
               </motion.div>
             </AnimatePresence>
 
-            {/* Still have questions CTA */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-[#071827] border border-white/10 rounded-2xl p-8 mt-8 text-center"
-            >
-              <div className="w-14 h-14 rounded-full bg-[#F97316]/10 flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="h-7 w-7 text-[#F97316]" />
-              </div>
-              <h3 className="text-2xl font-black text-white hero-text uppercase mb-2">
-                STILL HAVE <span className="text-[#38BDF8]">QUESTIONS?</span>
-              </h3>
-              <p className="text-[#94A3B8] mb-6">
-                Our trek experts respond within 2 hours during business hours.
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-3">
+            {/* Still have questions */}
+            <FadeIn className="mt-16 rounded-[28px] border border-white/10 bg-[#071827] p-8 sm:p-10">
+              <RevealHeading
+                lines={['Still have a question?']}
+                className="font-display text-3xl font-medium tracking-tight text-white sm:text-4xl"
+              />
+              <p className="mt-3 text-[#94A3B8]">Our trek team replies within two hours during business hours.</p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <button
                   onClick={() => navigate('/contact')}
-                  className="bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3 rounded-full font-bold transition-all active:scale-95"
+                  className="tv-btn-primary h-12 px-7 text-sm"
                   data-testid="faq-contact-button"
                 >
-                  Contact Us
+                  Contact us
                 </button>
                 <a
                   href="https://wa.me/919876543210"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="border border-white/30 hover:border-[#38BDF8] text-white px-6 py-3 rounded-full font-bold transition-all active:scale-95"
+                  className="tv-btn-ghost h-12 px-7 text-sm"
                   data-testid="faq-whatsapp-button"
                 >
-                  WhatsApp Us
+                  WhatsApp us
                 </a>
               </div>
-            </motion.div>
+            </FadeIn>
           </div>
         </div>
       </div>

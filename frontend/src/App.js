@@ -23,6 +23,7 @@ import FAQ from './pages/FAQ';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AuthCallback from './pages/AuthCallback';
+import Account from './pages/Account';
 import NotFound from './pages/NotFound';
 import './App.css';
 
@@ -56,6 +57,9 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/account" element={<Account />} />
+              <Route path="/profile" element={<Navigate to="/account?tab=profile" replace />} />
+              <Route path="/bookings" element={<Navigate to="/account?tab=bookings" replace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Footer />

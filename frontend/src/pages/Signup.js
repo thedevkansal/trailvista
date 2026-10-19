@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { safeRedirectPath } from '../lib/authRedirect';
 import GoogleSignInButton from '../components/GoogleSignInButton';
-import { UserPlus, ShieldAlert, Eye, EyeOff, CheckCircle2, User, Mail, Phone, MapPin, Calendar, ChevronDown, Lock, Loader2 } from 'lucide-react';
+import AuthLayout, { AuthAlert, AuthField } from '../components/AuthLayout';
+import { Eye, EyeOff, ChevronDown, Loader2 } from 'lucide-react';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -117,262 +117,180 @@ const Signup = () => {
     }
   };
 
+  const passwordToggle = (shown, setShown) => (
+    <button
+      type="button"
+      onClick={() => setShown(!shown)}
+      className="flex h-9 w-9 items-center justify-center rounded-full text-[#94A3B8] hover:bg-white/5 hover:text-white"
+      aria-label={shown ? 'Hide password' : 'Show password'}
+    >
+      {shown ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+    </button>
+  );
+
+  if (signupSuccess) {
+    return (
+      <AuthLayout
+        title="Check your inbox"
+        subtitle="If this email isn’t registered yet, we’ve sent a link to verify it. Already have an account? Sign in instead."
+      >
+        <Link to="/login" className="tv-btn-primary h-12 w-full text-sm">
+          Go to sign in
+        </Link>
+      </AuthLayout>
+    );
+  }
+
   return (
-    <div className="min-h-screen pt-32 pb-24 flex items-center justify-center bg-[#020617] px-4 relative overflow-hidden">
-      {/* Background soft glow overlay */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#F97316]/5 rounded-full blur-[120px] pointer-events-none z-0" />
-      
-      <div className="max-w-md w-full relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-[#071827]/70 border border-white/5 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-md relative overflow-hidden"
-        >
-          {signupSuccess ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-8 space-y-4"
+    <AuthLayout
+      title="Create your account"
+      subtitle="Book departures, track payments and keep your trek details in one place."
+      footer={
+        <p>
+          Already have an account?{' '}
+          <Link
+            to="/login"
+            state={{ from: redirectPath }}
+            className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-[#38BDF8]"
+          >
+            Sign in
+          </Link>
+        </p>
+      }
+    >
+      <AuthAlert>{error}</AuthAlert>
+
+      <GoogleSignInButton redirectPath={redirectPath} label="Sign up with Google" onError={setError} />
+
+      <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+        <AuthField
+          id="signup-name"
+          label="Full name"
+          type="text"
+          autoComplete="name"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          required
+          disabled={loading}
+          placeholder="As on your ID"
+          data-testid="signup-name-input"
+        />
+        <AuthField
+          id="signup-email"
+          label="Email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={loading}
+          placeholder="you@example.com"
+          data-testid="signup-email-input"
+        />
+        <AuthField
+          id="signup-phone"
+          label="Phone"
+          type="tel"
+          inputMode="numeric"
+          autoComplete="tel-national"
+          value={phone}
+          onChange={handlePhoneChange}
+          required
+          disabled={loading}
+          placeholder="10-digit mobile number"
+          leading="+91"
+          hint="Your trek leader uses this to reach you before departure."
+          data-testid="signup-phone-input"
+        />
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <AuthField
+            id="signup-city"
+            label="City (optional)"
+            type="text"
+            autoComplete="address-level2"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            disabled={loading}
+            placeholder="Where you’re travelling from"
+            data-testid="signup-city-input"
+          />
+          <AuthField
+            id="signup-age"
+            label="Age (optional)"
+            type="number"
+            min="1"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            disabled={loading}
+            placeholder="Years"
+            data-testid="signup-age-input"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="signup-style" className="mb-2 block text-sm font-medium text-white">
+            How do you like to travel? (optional)
+          </label>
+          <div className="relative">
+            <select
+              id="signup-style"
+              value={travelStyle}
+              onChange={(e) => setTravelStyle(e.target.value)}
+              disabled={loading}
+              className="h-12 w-full cursor-pointer appearance-none rounded-xl border border-white/10 bg-[#071827] pl-4 pr-10 text-[15px] text-white hover:border-white/20 disabled:opacity-50"
+              data-testid="signup-travelstyle-select"
             >
-              <div className="mx-auto w-16 h-16 bg-green-500/10 border border-green-500/30 rounded-full flex items-center justify-center text-green-400">
-                <CheckCircle2 className="h-8 w-8" />
-              </div>
-              <h2 className="text-xl font-bold text-white">Check Your Email</h2>
-              <p className="text-[#94A3B8] text-sm leading-relaxed font-light">
-                If this email isn't registered yet, we've sent a link to verify your account. Already have an account? Just log in.
-              </p>
-              <Link
-                to="/login"
-                className="mt-6 w-full bg-[#38BDF8] hover:bg-[#0ea5e9] text-white px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 flex items-center justify-center cursor-pointer shadow-lg shadow-[#38BDF8]/10"
-              >
-                Go to Login
-              </Link>
-            </motion.div>
-          ) : (
-            <>
-              {/* Header */}
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-black text-white hero-text uppercase mb-2 tracking-wide">
-                  TRAIL<span className="text-[#38BDF8]">VISTA</span>
-                </h1>
-                <p className="text-[#94A3B8] text-sm font-light leading-relaxed">
-                  Create an account to start booking your expeditions.
-                </p>
-              </div>
+              <option value="">Choose one</option>
+              <option value="Beginner">First Himalayan trek</option>
+              <option value="Adventure">Adventure</option>
+              <option value="Family">With family</option>
+              <option value="Solo">Solo</option>
+              <option value="Premium">Premium comfort</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]" />
+          </div>
+        </div>
 
-              {/* Error Banner */}
-              <AnimatePresence mode="wait">
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-start space-x-2 shadow-lg"
-                  >
-                    <ShieldAlert className="h-5 w-5 flex-shrink-0 mt-0.5 animate-pulse" />
-                    <span>{error}</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+        <AuthField
+          id="signup-password"
+          label="Password"
+          type={showPassword ? 'text' : 'password'}
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          disabled={loading}
+          placeholder="Create a password"
+          hint="8+ characters with upper and lower case, a number and a symbol."
+          trailing={passwordToggle(showPassword, setShowPassword)}
+          data-testid="signup-password-input"
+        />
+        <AuthField
+          id="signup-confirm"
+          label="Confirm password"
+          type={showConfirmPassword ? 'text' : 'password'}
+          autoComplete="new-password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          disabled={loading}
+          placeholder="Type it again"
+          trailing={passwordToggle(showConfirmPassword, setShowConfirmPassword)}
+          data-testid="signup-confirmpassword-input"
+        />
 
-              <div className="mb-4">
-                <GoogleSignInButton redirectPath={redirectPath} label="Sign up with Google" onError={setError} />
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4 max-h-[55vh] overflow-y-auto pr-1 scrollbar-thin">
-                <div>
-                  <label className="text-[#94A3B8] text-xs mb-2 block font-semibold uppercase tracking-wider">Full Name *</label>
-                  <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#94A3B8]" />
-                    <input
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="w-full bg-[#020617] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm focus:outline-none focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8]/50 hover:border-white/20 transition-all duration-300 disabled:opacity-50"
-                      placeholder="John Doe"
-                      data-testid="signup-name-input"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[#94A3B8] text-xs mb-2 block font-semibold uppercase tracking-wider">Email Address *</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#94A3B8]" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="w-full bg-[#020617] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm focus:outline-none focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8]/50 hover:border-white/20 transition-all duration-300 disabled:opacity-50"
-                      placeholder="john@example.com"
-                      data-testid="signup-email-input"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[#94A3B8] text-xs mb-2 block font-semibold uppercase tracking-wider">Phone Number *</label>
-                  <div className={`flex rounded-xl overflow-hidden border border-white/10 focus-within:border-[#38BDF8] focus-within:ring-1 focus-within:ring-[#38BDF8]/50 bg-[#020617] transition-all duration-300 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
-                    <span className="bg-white/5 px-3.5 py-3 text-[#94A3B8] text-sm flex items-center border-r border-white/10 select-none font-semibold">
-                      +91
-                    </span>
-                    <div className="relative flex-grow">
-                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#94A3B8] opacity-50" />
-                      <input
-                        type="tel"
-                        value={phone}
-                        onChange={handlePhoneChange}
-                        required
-                        disabled={loading}
-                        className="w-full bg-transparent pl-11 pr-4 py-3 text-white text-sm focus:outline-none disabled:opacity-50"
-                        placeholder="XXXXXXXXXX"
-                        data-testid="signup-phone-input"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[#94A3B8] text-xs mb-2 block font-semibold uppercase tracking-wider">City / Location (Optional)</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#94A3B8]" />
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      disabled={loading}
-                      className="w-full bg-[#020617] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm focus:outline-none focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8]/50 hover:border-white/20 transition-all duration-300 disabled:opacity-50"
-                      placeholder="Dehradun"
-                      data-testid="signup-city-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[#94A3B8] text-xs mb-2 block font-semibold uppercase tracking-wider">Age (Optional)</label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#94A3B8]" />
-                      <input
-                        type="number"
-                        value={age}
-                        onChange={(e) => setAge(e.target.value)}
-                        disabled={loading}
-                        className="w-full bg-[#020617] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm focus:outline-none focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8]/50 hover:border-white/20 transition-all duration-300 disabled:opacity-50"
-                        placeholder="28"
-                        data-testid="signup-age-input"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[#94A3B8] text-xs mb-2 block font-semibold uppercase tracking-wider">Travel Style</label>
-                    <div className="relative">
-                      <select
-                        value={travelStyle}
-                        onChange={(e) => setTravelStyle(e.target.value)}
-                        disabled={loading}
-                        className="w-full bg-[#020617] border border-white/10 hover:border-white/20 focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8]/50 text-white rounded-xl pl-4 pr-10 py-3 text-sm transition-all duration-300 appearance-none cursor-pointer disabled:opacity-50"
-                        data-testid="signup-travelstyle-select"
-                      >
-                        <option value="">Select style</option>
-                        <option value="Beginner">Beginner</option>
-                        <option value="Adventure">Adventure</option>
-                        <option value="Family">Family</option>
-                        <option value="Solo">Solo</option>
-                        <option value="Premium">Premium</option>
-                      </select>
-                      <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8] pointer-events-none" />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[#94A3B8] text-xs mb-2 block font-semibold uppercase tracking-wider">Password *</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#94A3B8]" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="w-full bg-[#020617] border border-white/10 rounded-xl pl-11 pr-10 py-3 text-white text-sm focus:outline-none focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8]/50 hover:border-white/20 transition-all duration-300 disabled:opacity-50"
-                      placeholder="Min 8 chars, mixed cases, symbol"
-                      data-testid="signup-password-input"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-white transition-colors focus:outline-none cursor-pointer"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[#94A3B8] text-xs mb-2 block font-semibold uppercase tracking-wider">Confirm Password *</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#94A3B8]" />
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="w-full bg-[#020617] border border-white/10 rounded-xl pl-11 pr-10 py-3 text-white text-sm focus:outline-none focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8]/50 hover:border-white/20 transition-all duration-300 disabled:opacity-50"
-                      placeholder="Confirm password"
-                      data-testid="signup-confirmpassword-input"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-white transition-colors focus:outline-none cursor-pointer"
-                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:active:scale-100 mt-6 shadow-lg shadow-[#F97316]/10 hover:shadow-[#F97316]/20 cursor-pointer"
-                  data-testid="signup-submit-button"
-                >
-                  {loading ? (
-                    <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                  ) : (
-                    <UserPlus className="h-4.5 w-4.5" />
-                  )}
-                  <span>{loading ? 'Creating Account...' : 'Create Account'}</span>
-                </button>
-
-                <div className="text-center mt-6">
-                  <p className="text-[#94A3B8] text-sm">
-                    Already have an account?{' '}
-                    <Link
-                      to="/login"
-                      state={{ from: redirectPath }}
-                      className="text-[#F97316] hover:underline font-semibold focus:outline-none cursor-pointer"
-                    >
-                      Log in
-                    </Link>
-                  </p>
-                </div>
-              </form>
-            </>
-          )}
-        </motion.div>
-      </div>
-    </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="tv-btn-primary !mt-8 h-12 w-full text-sm"
+          data-testid="signup-submit-button"
+        >
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {loading ? 'Creating account…' : 'Create account'}
+        </button>
+      </form>
+    </AuthLayout>
   );
 };
 

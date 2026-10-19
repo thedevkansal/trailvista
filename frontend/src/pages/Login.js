@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { safeRedirectPath } from '../lib/authRedirect';
 import GoogleSignInButton from '../components/GoogleSignInButton';
-import { LogIn, ShieldAlert, Eye, EyeOff, Mail, ArrowLeft, CheckCircle2, Lock, Loader2 } from 'lucide-react';
+import AuthLayout, { AuthAlert, AuthField } from '../components/AuthLayout';
+import { Eye, EyeOff, ArrowLeft, Loader2 } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -22,10 +22,16 @@ const Login = () => {
 
   const redirectPath = safeRedirectPath(location.state?.from);
 
+  const switchMode = (next) => {
+    setMode(next);
+    setError(null);
+    setSuccessMessage(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('Please fill in all fields.');
+      setError('Enter your email and password.');
       return;
     }
 
@@ -37,13 +43,13 @@ const Login = () => {
     } catch (err) {
       const errMsg = err.message || '';
       const lowerMsg = errMsg.toLowerCase();
-      
+
       if (lowerMsg.includes('confirm') || lowerMsg.includes('verified') || lowerMsg.includes('verification')) {
-        setError('Please verify your email before logging in.');
+        setError('Verify your email first. The link is in your inbox.');
       } else if (lowerMsg.includes('invalid') || lowerMsg.includes('credentials') || lowerMsg.includes('not found') || lowerMsg.includes('no user') || lowerMsg.includes('invalid_credentials')) {
-        setError('Invalid email or password.');
+        setError('That email and password don’t match an account.');
       } else {
-        setError(errMsg || 'Invalid email or password.');
+        setError(errMsg || 'That email and password don’t match an account.');
       }
     } finally {
       setLoading(false);
@@ -53,7 +59,7 @@ const Login = () => {
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     if (!email) {
-      setError('Please enter your email address.');
+      setError('Enter the email you signed up with.');
       return;
     }
 
@@ -67,194 +73,137 @@ const Login = () => {
       });
       if (resetError) throw resetError;
 
-      setSuccessMessage('If an account exists for this email, a password reset link is on its way.');
+      setSuccessMessage('If an account exists for this email, a reset link is on its way.');
     } catch (err) {
-      setError(err.message || 'Failed to send reset link.');
+      setError(err.message || 'Couldn’t send the reset link. Try again in a minute.');
     } finally {
       setLoading(false);
     }
   };
 
+  if (mode === 'forgot') {
+    return (
+      <AuthLayout
+        title="Reset your password"
+        subtitle="We’ll email you a link to choose a new one."
+        footer={
+          <button
+            type="button"
+            onClick={() => switchMode('login')}
+            className="inline-flex items-center gap-2 font-semibold text-white hover:text-[#38BDF8]"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to sign in
+          </button>
+        }
+      >
+        <AuthAlert tone="success">{successMessage}</AuthAlert>
+        <AuthAlert>{error}</AuthAlert>
+        <form onSubmit={handleForgotPassword} className="space-y-6">
+          <AuthField
+            id="forgot-email"
+            label="Email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loading}
+            placeholder="you@example.com"
+            data-testid="forgot-email-input"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="tv-btn-primary h-12 w-full text-sm"
+            data-testid="forgot-submit-button"
+          >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading ? 'Sending link…' : 'Send reset link'}
+          </button>
+        </form>
+      </AuthLayout>
+    );
+  }
+
   return (
-    <div className="min-h-screen pt-32 pb-24 flex items-center justify-center bg-[#020617] px-4 relative overflow-hidden">
-      {/* Background soft glow overlay */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#38BDF8]/10 rounded-full blur-[120px] pointer-events-none z-0" />
-      
-      <div className="max-w-md w-full relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-[#071827]/70 border border-white/5 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-md relative overflow-hidden"
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to see your bookings and reserve your next departure."
+      footer={
+        <p>
+          New to TrailVista?{' '}
+          <Link
+            to="/signup"
+            state={{ from: redirectPath }}
+            className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-[#38BDF8]"
+          >
+            Create an account
+          </Link>
+        </p>
+      }
+    >
+      <AuthAlert tone="success">{successMessage}</AuthAlert>
+      <AuthAlert>{error}</AuthAlert>
+
+      <GoogleSignInButton redirectPath={redirectPath} onError={setError} />
+
+      <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+        <AuthField
+          id="login-email"
+          label="Email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={loading}
+          placeholder="you@example.com"
+          data-testid="login-email-input"
+        />
+        <AuthField
+          id="login-password"
+          label="Password"
+          type={showPassword ? 'text' : 'password'}
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          disabled={loading}
+          placeholder="Your password"
+          data-testid="login-password-input"
+          aside={
+            <button
+              type="button"
+              onClick={() => switchMode('forgot')}
+              className="text-sm text-[#94A3B8] hover:text-white"
+            >
+              Forgot password?
+            </button>
+          }
+          trailing={
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[#94A3B8] hover:bg-white/5 hover:text-white"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          }
+        />
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="tv-btn-primary !mt-8 h-12 w-full text-sm"
+          data-testid="login-submit-button"
         >
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-black text-white hero-text uppercase mb-2 tracking-wide">
-              TRAIL<span className="text-[#38BDF8]">VISTA</span>
-            </h1>
-            <p className="text-[#94A3B8] text-sm font-light leading-relaxed">
-              {mode === 'login' 
-                ? 'Welcome back! Log in to continue your adventure.' 
-                : 'Reset your password to access your account.'}
-            </p>
-          </div>
-
-          {/* Success Banner */}
-          <AnimatePresence mode="wait">
-            {successMessage && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-sm flex items-start space-x-2 shadow-lg"
-              >
-                <CheckCircle2 className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                <span>{successMessage}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Error Banner */}
-          <AnimatePresence mode="wait">
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-start space-x-2 shadow-lg"
-              >
-                <ShieldAlert className="h-5 w-5 flex-shrink-0 mt-0.5 animate-pulse" />
-                <span>{error}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {mode === 'login' ? (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <GoogleSignInButton redirectPath={redirectPath} onError={setError} />
-              <div>
-                <label className="text-[#94A3B8] text-xs mb-2 block font-semibold uppercase tracking-wider">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#94A3B8]" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="w-full bg-[#020617] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm focus:outline-none focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8]/50 hover:border-white/20 transition-all duration-300 disabled:opacity-50"
-                    placeholder="you@example.com"
-                    data-testid="login-email-input"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-[#94A3B8] text-xs font-semibold uppercase tracking-wider">Password</label>
-                  <button
-                    type="button"
-                    onClick={() => { setMode('forgot'); setError(null); setSuccessMessage(null); }}
-                    className="text-xs text-[#38BDF8] hover:underline font-semibold focus:outline-none cursor-pointer"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#94A3B8]" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="w-full bg-[#020617] border border-white/10 rounded-xl pl-11 pr-10 py-3 text-white text-sm focus:outline-none focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8]/50 hover:border-white/20 transition-all duration-300 disabled:opacity-50"
-                    placeholder="••••••••"
-                    data-testid="login-password-input"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-white transition-colors focus:outline-none cursor-pointer"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[#38BDF8] hover:bg-[#0ea5e9] text-white px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:active:scale-100 mt-6 shadow-lg shadow-[#38BDF8]/10 hover:shadow-[#38BDF8]/20 cursor-pointer"
-                data-testid="login-submit-button"
-              >
-                {loading ? (
-                  <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                ) : (
-                  <LogIn className="h-4.5 w-4.5" />
-                )}
-                <span>{loading ? 'Logging in...' : 'Log In'}</span>
-              </button>
-
-              <div className="text-center mt-6">
-                <p className="text-[#94A3B8] text-sm">
-                  Don’t have an account?{' '}
-                  <Link
-                    to="/signup"
-                    state={{ from: redirectPath }}
-                    className="text-[#38BDF8] hover:underline font-semibold focus:outline-none cursor-pointer"
-                  >
-                    Create one
-                  </Link>
-                </p>
-              </div>
-            </form>
-          ) : (
-            <form onSubmit={handleForgotPassword} className="space-y-5">
-              <div>
-                <label className="text-[#94A3B8] text-xs mb-2 block font-semibold uppercase tracking-wider">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#94A3B8]" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="w-full bg-[#020617] border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white text-sm focus:outline-none focus:border-[#38BDF8] focus:ring-1 focus:ring-[#38BDF8]/50 hover:border-white/20 transition-all duration-300 disabled:opacity-50"
-                    placeholder="you@example.com"
-                    data-testid="forgot-email-input"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:active:scale-100 mt-6 shadow-lg shadow-[#F97316]/10 hover:shadow-[#F97316]/20 cursor-pointer"
-                data-testid="forgot-submit-button"
-              >
-                {loading ? (
-                  <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                ) : (
-                  <Mail className="h-4.5 w-4.5" />
-                )}
-                <span>{loading ? 'Sending Link...' : 'Send Reset Link'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => { setMode('login'); setError(null); setSuccessMessage(null); }}
-                className="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#38BDF8]/30 text-white px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 flex items-center justify-center space-x-2 mt-3 cursor-pointer"
-              >
-                <ArrowLeft className="h-4.5 w-4.5" />
-                <span>Back to Log In</span>
-              </button>
-            </form>
-          )}
-        </motion.div>
-      </div>
-    </div>
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {loading ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
+    </AuthLayout>
   );
 };
 

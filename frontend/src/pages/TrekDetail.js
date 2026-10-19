@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  MapPin, Calendar, TrendingUp, Mountain, Shield, 
+import {
+  MapPin, Calendar, Mountain, Shield, Star,
   ChevronDown, Check, X, ShieldAlert, MessageCircle, Info
 } from 'lucide-react';
 import EnquiryModal from '../components/EnquiryModal';
+import { RevealHeading, EASE_OUT } from '../components/motion';
 import { treks, reviews as allReviews } from '../data/treksData';
 import { useAuth } from '../context/AuthContext';
 import { loadRazorpay } from '../lib/loadRazorpay';
@@ -43,11 +44,12 @@ const TrekDetail = () => {
 
   if (!trek) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center bg-[#020617] text-white">
+      <div className="min-h-screen pt-32 flex items-center justify-center bg-[#020617] px-4 text-white">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Trek not found</h2>
-          <button onClick={() => navigate('/treks')} className="text-[#38BDF8] font-bold">
-            View all treks
+          <h2 className="font-display text-4xl font-medium tracking-tight text-white">We can’t find that trek</h2>
+          <p className="mt-3 text-[#94A3B8]">It may have been renamed or retired for the season.</p>
+          <button onClick={() => navigate('/treks')} className="tv-btn-primary mt-8 h-12 px-7 text-sm">
+            Browse all treks
           </button>
         </div>
       </div>
@@ -185,116 +187,144 @@ const TrekDetail = () => {
     }
   };
 
+  const formatDate = (dateStr, opts = { day: 'numeric', month: 'short', year: 'numeric' }) =>
+    new Date(dateStr).toLocaleDateString('en-IN', opts);
+
+  const openEnquiry = () => {
+    if (!user) {
+      navigate('/signup', { state: { from: location.pathname } });
+    } else {
+      setEnquiryOpen(true);
+    }
+  };
+
+  const bookLabel = paymentLoading ? 'Processing…' : bookingSuccess ? 'Booked' : selectedDate ? 'Book this departure' : 'No upcoming dates';
+
+  const SECTION_TABS = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'itinerary', label: 'Itinerary' },
+    { id: 'dates', label: 'Dates' },
+    { id: 'carry', label: 'What to carry' },
+    { id: 'inclusions', label: 'What’s included' },
+    { id: 'safety', label: 'Safety' }
+  ];
+
+  const sectionTitle = 'font-display text-3xl font-medium tracking-tight text-white sm:text-4xl';
+
   return (
     <div className="min-h-screen pt-24 pb-24 bg-[#020617] text-white">
-      {/* Hero Section */}
-      <div className="relative h-[65vh] mb-8 overflow-hidden">
-        <img 
-          src={trek.image} 
-          alt={trek.name}
-          className="w-full h-full object-cover transform scale-100 hover:scale-102 transition-transform duration-[4000ms]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/50 to-transparent" />
-        
-        <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-12">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span className={`px-4 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                  trek.difficulty === 'Easy' ? 'bg-green-500/95 shadow-md shadow-green-500/20' : 
-                  trek.difficulty === 'Moderate' ? 'bg-yellow-500/95 shadow-md shadow-yellow-500/20' : 
-                  'bg-red-500/95 shadow-md shadow-red-500/20'
-                } text-white`}>
-                  {trek.difficulty}
+      {/* Hero */}
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="tv-cinematic tv-grain relative mx-auto h-[68vh] min-h-[520px] max-w-7xl overflow-hidden rounded-[28px]">
+          <img src={trek.image} alt={trek.name} className="tv-drift absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/40 to-[#020617]/10" />
+
+          <div className="absolute inset-x-0 bottom-0 p-6 sm:p-10 lg:p-12">
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full bg-[#020617]/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md">
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    trek.difficulty === 'Easy' ? 'bg-emerald-400' : trek.difficulty === 'Moderate' ? 'bg-amber-300' : 'bg-rose-400'
+                  }`}
+                />
+                {trek.difficulty}
+              </span>
+              {trek.bestSeason && (
+                <span className="rounded-full bg-[#020617]/55 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md">
+                  {trek.bestSeason}
                 </span>
-                {trek.bestSeason && (
-                  <span className="px-4 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#38BDF8]/90 text-white shadow-md shadow-[#38BDF8]/10">
-                    {trek.bestSeason}
-                  </span>
-                )}
-                {trek.seatsLeft < 10 && (
-                  <span className="px-4 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#F97316]/95 text-white shadow-md shadow-[#F97316]/20">
-                    Only {trek.seatsLeft} seats left
-                  </span>
-                )}
-              </div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4 leading-tight">
-                {trek.name}
-              </h1>
-              <div className="flex flex-wrap items-center gap-y-3 gap-x-6 text-[#CBD5E1] text-sm sm:text-base font-semibold">
-                <div className="flex items-center space-x-2">
-                  <MapPin className="h-5 w-5 text-[#38BDF8]" />
-                  <span>{trek.location}</span>
+              )}
+              {trek.seatsLeft < 10 && (
+                <span className="rounded-full bg-[#F2A65A] px-3 py-1.5 text-xs font-bold text-[#1A1208]">
+                  {trek.seatsLeft} seats left
+                </span>
+              )}
+            </div>
+            <RevealHeading
+              as="h1"
+              lines={[trek.name]}
+              className="max-w-4xl font-display text-[44px] font-medium leading-[1] tracking-tight text-white sm:text-6xl lg:text-7xl"
+            />
+            <motion.dl
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.25, ease: EASE_OUT }}
+              className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/80 sm:text-base"
+            >
+              {[
+                { icon: MapPin, label: 'Location', value: trek.location },
+                { icon: Calendar, label: 'Duration', value: trek.duration },
+                { icon: Mountain, label: 'Highest point', value: trek.maxAltitude },
+              ].map(({ icon: Icon, label, value }) => (
+                <div key={label} className="flex items-center gap-2">
+                  <dt className="sr-only">{label}</dt>
+                  <Icon className="h-4 w-4 text-white/50" />
+                  <dd>{value}</dd>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-5 w-5 text-[#38BDF8]" />
-                  <span>{trek.duration}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Mountain className="h-5 w-5 text-[#38BDF8]" />
-                  <span>{trek.maxAltitude}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="h-5 w-5 text-[#38BDF8]" />
-                  <span>{trek.difficulty} Grade</span>
-                </div>
-              </div>
-            </motion.div>
+              ))}
+            </motion.dl>
           </div>
         </div>
       </div>
 
-      {/* Navigation Anchor Tabs */}
-      <div className="sticky top-20 z-30 bg-[#020617]/90 border-b border-white/10 backdrop-blur-md mb-8 py-3.5 hidden md:block">
+      {/* Section navigation */}
+      <div className="sticky top-20 z-30 mt-8 hidden border-b border-white/10 bg-[#020617]/80 backdrop-blur-md md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            {[
-              { id: 'overview', label: 'Overview' },
-              { id: 'itinerary', label: 'Itinerary' },
-              { id: 'dates', label: 'Departure Dates' },
-              { id: 'carry', label: 'What to Carry' },
-              { id: 'inclusions', label: 'Inclusions' },
-              { id: 'safety', label: 'Safety Guidelines' }
-            ].map(tab => (
+          <nav aria-label="Trek sections" className="flex gap-1">
+            {SECTION_TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => scrollToSection(tab.id)}
-                className={`text-sm font-black uppercase tracking-wider transition-colors pb-1 border-b-2 cursor-pointer ${
-                  activeTab === tab.id
-                    ? 'border-[#38BDF8] text-[#38BDF8]'
-                    : 'border-transparent text-[#94A3B8] hover:text-white'
+                aria-current={activeTab === tab.id ? 'true' : undefined}
+                className={`relative px-3 py-4 text-sm font-semibold transition-colors ${
+                  activeTab === tab.id ? 'text-white' : 'text-[#94A3B8] hover:text-white'
                 }`}
               >
                 {tab.label}
+                {activeTab === tab.id && (
+                  <motion.span
+                    layoutId="trek-section-underline"
+                    className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-[#F2A65A]"
+                    transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+                  />
+                )}
               </button>
             ))}
-          </div>
+          </nav>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content Details */}
-          <div className="lg:col-span-2 space-y-8">
-            
+      <div className="max-w-7xl mx-auto mt-12 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
+          {/* Main content */}
+          <div className="space-y-20 lg:col-span-8">
+
             {/* Overview */}
-            <section id="overview" className="bg-[#071827] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-xl">
-              <h2 className="text-2xl font-black uppercase tracking-wider text-white mb-4">Overview</h2>
-              <p className="text-[#94A3B8] leading-relaxed text-sm sm:text-base mb-6">
-                {trek.overview}
-              </p>
-              
+            <section id="overview">
+              <h2 className={sectionTitle}>Overview</h2>
+              <p className="mt-6 text-lg leading-relaxed text-[#94A3B8]">{trek.overview}</p>
+
+              <dl className="mt-10 grid grid-cols-2 gap-x-8 md:grid-cols-4">
+                {[
+                  { label: 'Duration', value: trek.duration },
+                  { label: 'Highest point', value: trek.maxAltitude },
+                  { label: 'Difficulty', value: trek.difficulty },
+                  { label: 'Best season', value: trek.bestSeason },
+                ].map((fact) => (
+                  <div key={fact.label} className="border-t border-white/10 py-5">
+                    <dt className="text-sm text-[#94A3B8]">{fact.label}</dt>
+                    <dd className="tv-num mt-1 font-display text-xl font-medium text-white">{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+
               {specialHighlights.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-white/5">
-                  <h3 className="text-lg font-bold text-white mb-3">Trek Highlights</h3>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                <div className="mt-10">
+                  <h3 className="font-display text-xl font-medium text-white">Highlights</h3>
+                  <ul className="mt-5 grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-2">
                     {specialHighlights.map((hl, idx) => (
-                      <li key={idx} className="flex items-start space-x-2 text-[#94A3B8] text-sm">
-                        <Check className="h-4.5 w-4.5 text-[#38BDF8] flex-shrink-0 mt-0.5" />
+                      <li key={idx} className="flex items-start gap-3 text-[#94A3B8]">
+                        <Check className="mt-1 h-4 w-4 flex-shrink-0 text-[#38BDF8]" />
                         <span>{hl}</span>
                       </li>
                     ))}
@@ -303,225 +333,177 @@ const TrekDetail = () => {
               )}
             </section>
 
-            {/* Quick Facts */}
-            <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-xl">
-              <h2 className="text-2xl font-black uppercase tracking-wider text-white mb-6">Expedition Facts</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div>
-                  <p className="text-[#64748B] text-xs font-bold uppercase tracking-wider mb-1">Duration</p>
-                  <p className="text-white font-extrabold text-lg">{trek.duration}</p>
-                </div>
-                <div>
-                  <p className="text-[#64748B] text-xs font-bold uppercase tracking-wider mb-1">Max Altitude</p>
-                  <p className="text-white font-extrabold text-lg">{trek.maxAltitude}</p>
-                </div>
-                <div>
-                  <p className="text-[#64748B] text-xs font-bold uppercase tracking-wider mb-1">Difficulty</p>
-                  <p className="text-white font-extrabold text-lg">{trek.difficulty}</p>
-                </div>
-                <div>
-                  <p className="text-[#64748B] text-xs font-bold uppercase tracking-wider mb-1">Best Season</p>
-                  <p className="text-white font-extrabold text-lg">{trek.bestSeason}</p>
-                </div>
-              </div>
-            </div>
-
             {/* Itinerary */}
-            <section id="itinerary" className="bg-[#071827] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-xl">
-              <h2 className="text-2xl font-black uppercase tracking-wider text-white mb-6">Day-by-Day Itinerary</h2>
-              <div className="space-y-4">
+            <section id="itinerary">
+              <h2 className={sectionTitle}>Day by day</h2>
+              <div className="mt-8 border-t border-white/10">
                 {itinerary.map((day) => (
-                  <details key={day.day} className="group">
-                    <summary className="flex items-center justify-between cursor-pointer bg-[#020617] border border-white/10 rounded-xl p-4 hover:border-[#38BDF8]/40 transition-all duration-300">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-[#38BDF8]/10 rounded-lg flex items-center justify-center border border-[#38BDF8]/20">
-                          <span className="text-[#38BDF8] font-black text-sm">Day {day.day}</span>
-                        </div>
-                        <div>
-                          <p className="text-white font-bold text-sm sm:text-base">{day.title}</p>
-                        </div>
-                      </div>
-                      <ChevronDown className="h-5 w-5 text-[#94A3B8] group-open:rotate-180 transition-transform duration-300" />
+                  <details key={day.day} className="group border-b border-white/10">
+                    <summary className="flex cursor-pointer list-none items-center gap-5 py-5 [&::-webkit-details-marker]:hidden">
+                      <span className="tv-num w-14 flex-shrink-0 text-sm text-[#94A3B8]">Day {day.day}</span>
+                      <span className="flex-1 font-display text-lg font-medium text-white sm:text-xl">{day.title}</span>
+                      <ChevronDown className="h-5 w-5 flex-shrink-0 text-[#94A3B8] transition-transform duration-300 group-open:rotate-180" />
                     </summary>
-                    <div className="mt-3 ml-14 text-[#94A3B8] text-sm sm:text-base leading-relaxed border-l-2 border-white/5 pl-4 py-1">
-                      {day.description}
-                    </div>
+                    <p className="pb-6 pl-[76px] pr-10 leading-relaxed text-[#94A3B8]">{day.description}</p>
                   </details>
                 ))}
               </div>
             </section>
 
-            {/* Departure Dates Selector */}
-            <section id="dates" className="bg-[#071827] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-xl">
-              <h2 className="text-2xl font-black uppercase tracking-wider text-white mb-4">Choose Departure Date</h2>
-              <p className="text-[#94A3B8] text-sm mb-6">Select from our upcoming fixed departures batch list. Guides, permits, and slots are pre-arranged.</p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Departure dates */}
+            <section id="dates">
+              <h2 className={sectionTitle}>Choose a departure</h2>
+              <p className="mt-3 text-[#94A3B8]">Fixed departures with leaders, permits and camps already arranged.</p>
+
+              <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2" role="group" aria-label="Departure dates">
                 {departures.map((dateStr) => {
                   const isSelected = selectedDate === dateStr;
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={dateStr}
                       onClick={() => setSelectedDate(dateStr)}
-                      className={`cursor-pointer rounded-xl p-4 border flex items-center justify-between transition-all duration-300 ${
-                        isSelected 
-                          ? 'bg-[#38BDF8]/10 border-[#38BDF8] shadow-lg shadow-[#38BDF8]/5' 
-                          : 'bg-[#020617] border-white/10 hover:border-white/20'
+                      aria-pressed={isSelected}
+                      className={`flex items-center justify-between gap-4 rounded-2xl border p-4 text-left transition-colors !rounded-2xl ${
+                        isSelected
+                          ? 'border-[#38BDF8] bg-[#38BDF8]/[0.07]'
+                          : 'border-white/10 bg-[#071827] hover:border-white/20'
                       }`}
                     >
-                      <div className="flex items-center space-x-3">
-                        <Calendar className={`h-5 w-5 ${isSelected ? 'text-[#38BDF8]' : 'text-[#64748B]'}`} />
-                        <div>
-                          <p className="text-white font-black text-sm">
-                            {new Date(dateStr).toLocaleDateString('en-IN', { 
-                              day: 'numeric', 
-                              month: 'short', 
-                              year: 'numeric' 
-                            })}
-                          </p>
-                          <p className="text-[#64748B] text-[10px] uppercase font-bold mt-0.5">Fixed Departure</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          isSelected ? 'bg-[#38BDF8] text-white' : 'bg-white/5 text-[#94A3B8]'
-                        }`}>
-                          {trek.seatsLeft} slots left
+                      <span>
+                        <span className="tv-num block font-display text-lg font-medium text-white">
+                          {formatDate(dateStr, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
-                        {isSelected && (
-                          <div className="w-5 h-5 bg-[#38BDF8] rounded-full flex items-center justify-center">
-                            <Check className="h-3.5 w-3.5 text-white" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                        <span className="mt-0.5 block text-sm text-[#94A3B8]">
+                          <span className="tv-num">{trek.seatsLeft}</span> seats left
+                        </span>
+                      </span>
+                      <span
+                        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border ${
+                          isSelected ? 'border-[#38BDF8] bg-[#38BDF8]' : 'border-white/20'
+                        }`}
+                      >
+                        {isSelected && <Check className="h-3.5 w-3.5 text-[#020617]" />}
+                      </span>
+                    </button>
                   );
                 })}
               </div>
               {departures.length === 0 && (
-                <p className="text-[#94A3B8] text-sm" data-testid="no-upcoming-departures">
+                <p className="text-[#94A3B8]" data-testid="no-upcoming-departures">
                   No upcoming departures are scheduled yet. Send us an enquiry and we'll tell you when the next batch opens.
                 </p>
               )}
             </section>
 
-            {/* Inclusions & Exclusions */}
-            <section id="inclusions" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-xl">
-                <h3 className="text-xl font-black uppercase tracking-wider text-white mb-4">Inclusions</h3>
-                <ul className="space-y-3">
-                  {inclusions.map((item, idx) => (
-                    <li key={idx} className="flex items-start space-x-2.5 text-[#94A3B8] text-sm">
-                      <Check className="h-4.5 w-4.5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-xl">
-                <h3 className="text-xl font-black uppercase tracking-wider text-white mb-4">Exclusions</h3>
-                <ul className="space-y-3">
-                  {exclusions.map((item, idx) => (
-                    <li key={idx} className="flex items-start space-x-2.5 text-[#94A3B8] text-sm">
-                      <X className="h-4.5 w-4.5 text-red-500 mt-0.5 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+            {/* Inclusions and exclusions */}
+            <section id="inclusions">
+              <h2 className={sectionTitle}>What’s included</h2>
+              <div className="mt-8 grid grid-cols-1 gap-10 md:grid-cols-2">
+                <div>
+                  <h3 className="font-display text-xl font-medium text-white">Included</h3>
+                  <ul className="mt-5 space-y-3">
+                    {inclusions.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-3 text-[#94A3B8]">
+                        <Check className="mt-1 h-4 w-4 flex-shrink-0 text-emerald-400" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-display text-xl font-medium text-white">Not included</h3>
+                  <ul className="mt-5 space-y-3">
+                    {exclusions.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-3 text-[#94A3B8]">
+                        <X className="mt-1 h-4 w-4 flex-shrink-0 text-rose-400" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </section>
 
-            {/* Things to Carry */}
-            <section id="carry" className="bg-[#071827] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-xl">
-              <h2 className="text-2xl font-black uppercase tracking-wider text-white mb-4">Things to Carry</h2>
-              <p className="text-[#94A3B8] text-sm mb-6">Ensure you prepare these gears before arriving at the base camp. Proper preparation protects you from alpine weather shifts.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Things to carry */}
+            <section id="carry">
+              <h2 className={sectionTitle}>What to carry</h2>
+              <p className="mt-3 text-[#94A3B8]">Pack these before you reach base camp. The right layers make the difference when the weather turns.</p>
+              <ul className="mt-8 grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-2">
                 {thingsToCarry.map((item, idx) => (
-                  <div key={idx} className="flex items-start space-x-2.5 text-[#94A3B8] text-sm">
-                    <Check className="h-4.5 w-4.5 text-[#38BDF8] mt-0.5 flex-shrink-0" />
+                  <li key={idx} className="flex items-start gap-3 text-[#94A3B8]">
+                    <span className="mt-2.5 h-1 w-1 flex-shrink-0 rounded-full bg-[#38BDF8]" />
                     <span>{item}</span>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
 
-            {/* Safety Guidelines */}
-            <section id="safety" className="bg-[#071827] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-xl">
-              <h2 className="text-2xl font-black uppercase tracking-wider text-white mb-4">Safety Protocols</h2>
-              <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 flex items-start space-x-3 mb-6">
-                <Info className="h-5 w-5 text-[#F97316] flex-shrink-0 mt-0.5" />
-                <p className="text-xs sm:text-sm text-[#CBD5E1] leading-relaxed">
-                  High altitude treks have dynamic climates and lower oxygen levels. Our emergency protocols are managed in partnership with regional Himalayan rescue divisions.
+            {/* Safety */}
+            <section id="safety">
+              <h2 className={sectionTitle}>Safety on this trek</h2>
+              <p className="mt-6 text-lg leading-relaxed text-[#94A3B8]">{safetyNotes}</p>
+              <div className="mt-6 flex items-start gap-3 rounded-2xl border border-white/10 bg-[#071827] p-5">
+                <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#38BDF8]" />
+                <p className="text-sm leading-relaxed text-[#94A3B8]">
+                  High-altitude weather changes fast and the air holds less oxygen. Our emergency protocols are run with regional Himalayan rescue teams.
                 </p>
               </div>
-              <p className="text-[#94A3B8] leading-relaxed text-sm sm:text-base">
-                {safetyNotes}
-              </p>
             </section>
 
             {/* Reviews */}
             {trekReviews.length > 0 && (
-              <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-xl">
-                <h2 className="text-2xl font-black uppercase tracking-wider text-white mb-6">Trekker Reviews</h2>
-                <div className="space-y-6">
+              <section>
+                <h2 className={sectionTitle}>From people who’ve done it</h2>
+                <div className="mt-8 space-y-8">
                   {trekReviews.map((review) => (
-                    <div key={review.id} className="border-b border-white/10 pb-6 last:border-0 last:pb-0">
-                      <div className="flex items-start space-x-4">
-                        <img 
-                          src={review.image} 
-                          alt={review.name}
-                          className="w-12 h-12 rounded-full object-cover border border-white/10"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <p className="text-white font-bold">{review.name}</p>
-                            <div className="flex space-x-0.5">
-                              {[...Array(review.rating)].map((_, i) => (
-                                <svg key={i} className="h-4 w-4 fill-[#F97316] text-[#F97316]" viewBox="0 0 20 20">
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                              ))}
-                            </div>
-                          </div>
-                          <p className="text-[#94A3B8] text-sm leading-relaxed">{review.review}</p>
-                        </div>
+                    <figure key={review.id} className="border-t border-white/10 pt-8">
+                      <div className="flex gap-1" aria-label={`${review.rating} out of 5`}>
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'fill-[#F2A65A] text-[#F2A65A]' : 'text-white/20'}`} />
+                        ))}
                       </div>
-                    </div>
+                      <blockquote className="mt-4 font-display text-xl font-medium leading-[1.35] text-white sm:text-2xl">
+                        “{review.review}”
+                      </blockquote>
+                      <figcaption className="mt-5 flex items-center gap-3">
+                        <img src={review.image} alt="" className="h-10 w-10 rounded-full object-cover" />
+                        <span className="text-sm font-semibold text-white">{review.name}</span>
+                      </figcaption>
+                    </figure>
                   ))}
                 </div>
-              </div>
+              </section>
             )}
           </div>
 
-          {/* Booking Card - Sticky */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-40 bg-[#071827] border border-white/10 rounded-2xl p-6 shadow-2xl tv-card-glow hidden lg:block">
-              <div className="mb-6">
-                <p className="text-[#64748B] text-xs font-bold uppercase tracking-wider mb-2">Starting from</p>
-                <p className="text-4xl font-black text-white">₹{trek.price.toLocaleString('en-IN')}</p>
-                <p className="text-[#94A3B8] text-xs mt-1">all-inclusive price per person</p>
-              </div>
+          {/* Booking card, sticky on desktop */}
+          <div className="lg:col-span-4">
+            <div className="sticky top-40 hidden rounded-[28px] border border-white/10 bg-[#071827] p-7 lg:block">
+              <p className="text-sm text-[#94A3B8]">From</p>
+              <p className="tv-num mt-1 font-display text-5xl font-medium tracking-tight text-white">
+                ₹{trek.price.toLocaleString('en-IN')}
+              </p>
+              <p className="mt-1 text-sm text-[#94A3B8]">per person, all inclusive</p>
 
               {selectedDate && (
-                <div className="mb-6 pb-6 border-b border-white/10">
-                  <p className="text-[#64748B] text-xs font-bold uppercase tracking-wider mb-2">Selected Departure</p>
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-5 w-5 text-[#38BDF8]" />
-                    <p className="text-white font-extrabold">
-                      {new Date(selectedDate).toLocaleDateString('en-IN', { 
-                        day: 'numeric', 
-                        month: 'short', 
-                        year: 'numeric' 
-                      })}
-                    </p>
-                  </div>
+                <div className="mt-6 border-t border-white/10 pt-6">
+                  <p className="text-sm text-[#94A3B8]">Departure</p>
+                  <p className="tv-num mt-1 font-display text-xl font-medium text-white">
+                    {formatDate(selectedDate, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
                   {trek.seatsLeft < 10 && (
-                    <p className="text-[#F97316] text-xs mt-2 font-bold uppercase tracking-wide">
-                      Hurry! Only {trek.seatsLeft} seats remaining
+                    <p className="mt-1 text-sm font-semibold text-[#F2A65A]">
+                      {trek.seatsLeft} seats left on this departure
                     </p>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('dates')}
+                    className="mt-2 text-sm font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
+                  >
+                    Change date
+                  </button>
                 </div>
               )}
 
@@ -531,9 +513,10 @@ const TrekDetail = () => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm flex items-start space-x-2"
+                    className="mt-6 flex items-start gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400"
+                    role="alert"
                   >
-                    <ShieldAlert className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                    <ShieldAlert className="mt-0.5 h-4 w-4 flex-shrink-0" />
                     <span>{paymentError}</span>
                   </motion.div>
                 )}
@@ -541,63 +524,50 @@ const TrekDetail = () => {
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm"
+                    className="mt-6 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm text-emerald-300"
+                    role="status"
                   >
-                    <p className="font-bold text-white mb-1">Booking confirmed!</p>
+                    <p className="mb-1 font-semibold text-white">Booking confirmed</p>
                     <p>{bookingSuccess.message || 'Your trek booking is confirmed.'}</p>
                     {bookingSuccess.selected_date && (
-                      <p className="text-xs text-[#38BDF8] mt-1 font-bold">
-                        Departure: {new Date(bookingSuccess.selected_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </p>
+                      <p className="tv-num mt-1 text-xs">Departure: {formatDate(bookingSuccess.selected_date)}</p>
                     )}
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="space-y-4">
-                <button 
+              <div className="mt-6 space-y-3">
+                <button
                   onClick={handleBookNow}
                   disabled={paymentLoading || !!bookingSuccess || !selectedDate}
-                  className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 tv-btn-cta shadow-lg shadow-[#F97316]/10 cursor-pointer"
+                  className="tv-btn-primary h-12 w-full px-6 text-sm"
                   data-testid="trek-detail-book-now"
                 >
-                  {paymentLoading ? 'Processing...' : bookingSuccess ? 'Booked' : selectedDate ? 'Book Now' : 'No upcoming dates'}
+                  {bookLabel}
                 </button>
-                
-                <button 
-                  onClick={() => {
-                    if (!user) {
-                      navigate('/signup', { state: { from: location.pathname } });
-                    } else {
-                      setEnquiryOpen(true);
-                    }
-                  }}
-                  className="w-full border border-white/20 hover:border-[#38BDF8] hover:bg-white/5 text-white px-6 py-3 rounded-xl font-bold transition-all active:scale-95 flex items-center justify-center space-x-2 text-sm cursor-pointer"
+
+                <button
+                  onClick={openEnquiry}
+                  className="tv-btn-ghost h-12 w-full px-6 text-sm"
                   data-testid="trek-detail-send-enquiry"
                 >
-                  <MessageCircle className="h-4.5 w-4.5 text-[#38BDF8]" />
-                  <span>Send Enquiry</span>
+                  Ask a question
                 </button>
-                
-                <div className="flex items-center justify-center space-x-1.5 text-[10px] text-[#64748B] pt-2 uppercase font-bold tracking-wide">
-                  <Shield className="h-3.5 w-3.5 text-green-500" />
-                  <span>Secure booking • Limited seats</span>
-                </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-white/10">
-                <p className="text-[#64748B] text-[10px] leading-relaxed text-center">
-                  All-inclusive pricing • Free cancellation up to 15 days before departure • 24/7 rescue support
-                </p>
-              </div>
+              <ul className="mt-6 space-y-2 border-t border-white/10 pt-6 text-sm text-[#94A3B8]">
+                <li className="flex items-center gap-2"><Shield className="h-4 w-4 text-emerald-400" /> Secure payment with Razorpay</li>
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#94A3B8]" /> Free cancellation up to 15 days before</li>
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-[#94A3B8]" /> Round-the-clock rescue support</li>
+              </ul>
             </div>
           </div>
         </div>
       </div>
 
-      <EnquiryModal 
-        isOpen={enquiryOpen} 
-        onClose={() => setEnquiryOpen(false)} 
+      <EnquiryModal
+        isOpen={enquiryOpen}
+        onClose={() => setEnquiryOpen(false)}
         trekName={trek.name}
       />
 
@@ -607,37 +577,42 @@ const TrekDetail = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020617]/80 px-4 backdrop-blur-md"
             onClick={() => setShowBookingDialog(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="max-w-md w-full bg-[#071827] border border-green-500/30 rounded-2xl p-8 text-center shadow-2xl"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+              transition={{ duration: 0.5, ease: EASE_OUT }}
+              className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#071827] p-8"
               onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="booking-confirmed-title"
             >
-              <div className="mx-auto w-14 h-14 bg-green-500/10 border border-green-500/30 rounded-full flex items-center justify-center mb-4">
-                <Check className="h-7 w-7 text-green-400" />
-              </div>
-              <h2 className="text-2xl font-black text-white mb-2">Thank You!</h2>
-              <p className="text-lg font-bold text-[#38BDF8] mb-3">Booking Confirmed</p>
-              <p className="text-[#94A3B8] text-sm mb-2">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-400/15">
+                <Check className="h-6 w-6 text-emerald-400" />
+              </span>
+              <h2 id="booking-confirmed-title" className="mt-6 font-display text-3xl font-medium tracking-tight text-white">
+                You’re going to {trek.name.replace(/ (Trek|Expedition)$/, '')}
+              </h2>
+              <p className="mt-3 text-[#94A3B8]">
                 {bookingSuccess.message || `Your booking for ${trek.name} is confirmed.`}
               </p>
               {bookingSuccess.selected_date && (
-                <p className="text-xs text-[#F97316] font-bold mb-4 uppercase tracking-wider">
-                  Departure Date: {new Date(bookingSuccess.selected_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                <p className="tv-num mt-4 font-display text-lg font-medium text-white">
+                  {formatDate(bookingSuccess.selected_date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
               )}
               {bookingSuccess.email_sent && bookingSuccess.email_to && (
-                <p className="text-[#94A3B8] text-sm mb-6 border-t border-white/5 pt-4">
-                  Confirmation email sent to <span className="text-white font-bold">{bookingSuccess.email_to}</span>
+                <p className="mt-4 border-t border-white/10 pt-4 text-sm text-[#94A3B8]">
+                  Confirmation sent to <span className="font-semibold text-white">{bookingSuccess.email_to}</span>
                 </p>
               )}
               <button
                 onClick={() => setShowBookingDialog(false)}
-                className="w-full bg-[#38BDF8] hover:bg-[#0ea5e9] text-white px-6 py-3 rounded-lg font-bold text-sm transition-all cursor-pointer"
+                className="tv-btn-primary mt-8 h-12 w-full px-6 text-sm"
               >
                 Done
               </button>
@@ -646,58 +621,59 @@ const TrekDetail = () => {
         )}
       </AnimatePresence>
 
-      {/* Floating Unobtrusive Chat Button */}
+      {/* Floating chat button */}
       <a
         href="https://wa.me/919876543210"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-20 lg:bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#22c35e] text-white p-3.5 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 flex items-center justify-center group"
+        className="group fixed bottom-24 right-4 z-50 flex items-center justify-center rounded-full bg-[#25D366] p-3.5 text-white shadow-2xl transition-transform duration-300 hover:scale-105 lg:bottom-6 lg:right-6"
         aria-label="Chat with us on WhatsApp"
         data-testid="trek-detail-whatsapp"
       >
         <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
           <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
         </svg>
-        <span className="max-w-0 overflow-hidden group-hover:max-w-xs group-hover:ml-2.5 transition-all duration-500 ease-out text-sm font-black uppercase tracking-wider whitespace-nowrap">
+        <span className="max-w-0 overflow-hidden whitespace-nowrap text-sm font-semibold transition-all duration-500 ease-out group-hover:ml-2.5 group-hover:max-w-xs">
           Chat with us
         </span>
       </a>
 
-      {/* Mobile Sticky Booking Widget */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#071827]/95 border-t border-white/10 p-4 pb-safe flex items-center justify-between backdrop-blur-md shadow-2xl lg:hidden">
-        <div>
-          <p className="text-[10px] text-[#64748B] uppercase tracking-wider mb-0.5">Starting from</p>
-          <div className="flex items-baseline space-x-1">
-            <span className="text-xl font-black text-white">₹{trek.price.toLocaleString('en-IN')}</span>
-            <span className="text-[#94A3B8] text-[10px]">/ person</span>
-          </div>
-          {selectedDate && (
-            <p className="text-[#38BDF8] text-[10px] font-bold uppercase tracking-wider mt-0.5">
-              Dept: {new Date(selectedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+      {/* Mobile sticky booking bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-[#071827]/95 p-4 pb-safe backdrop-blur-md lg:hidden">
+        {paymentError && (
+          <p className="mb-3 flex items-start gap-2 text-sm text-red-400" role="alert">
+            <ShieldAlert className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            <span>{paymentError}</span>
+          </p>
+        )}
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="tv-num font-display text-xl font-medium text-white">
+              ₹{trek.price.toLocaleString('en-IN')}
+              <span className="ml-1 font-sans text-xs font-normal text-[#94A3B8]">/ person</span>
             </p>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => {
-              if (!user) {
-                navigate('/signup', { state: { from: location.pathname } });
-              } else {
-                setEnquiryOpen(true);
-              }
-            }}
-            className="border border-white/20 hover:border-[#38BDF8] text-white p-2.5 rounded-xl font-bold text-xs"
-            aria-label="Send Enquiry"
-          >
-            <MessageCircle className="h-5 w-5" />
-          </button>
-          <button
-            onClick={handleBookNow}
-            disabled={paymentLoading || !!bookingSuccess || !selectedDate}
-            className="bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 shadow-lg cursor-pointer"
-          >
-            {paymentLoading ? 'Processing...' : bookingSuccess ? 'Booked' : selectedDate ? 'Book Now' : 'No upcoming dates'}
-          </button>
+            {selectedDate && (
+              <p className="tv-num truncate text-xs text-[#94A3B8]">
+                {formatDate(selectedDate, { weekday: 'short', day: 'numeric', month: 'short' })}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={openEnquiry}
+              className="tv-btn-ghost h-11 w-11"
+              aria-label="Ask a question"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </button>
+            <button
+              onClick={handleBookNow}
+              disabled={paymentLoading || !!bookingSuccess || !selectedDate}
+              className="tv-btn-primary h-11 px-5 text-sm"
+            >
+              {paymentLoading ? 'Processing…' : bookingSuccess ? 'Booked' : selectedDate ? 'Book now' : 'No dates'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
