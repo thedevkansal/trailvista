@@ -133,7 +133,7 @@ def _verify_supabase_jwt(token: str) -> dict[str, Any]:
     return user
 
 
-async def get_current_user(authorization: Optional[str] = Header(None)) -> dict[str, Any]:
+def get_current_user(authorization: Optional[str] = Header(None)) -> dict[str, Any]:
     if not authorization or not authorization.startswith("Bearer "):
         logger.warning("Payment auth: missing or invalid Authorization header")
         raise HTTPException(status_code=401, detail="Authentication required.")
@@ -145,8 +145,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict[
     return _verify_supabase_jwt(token)
 
 
-async def get_current_user_id(authorization: Optional[str] = Header(None)) -> str:
-    user = await get_current_user(authorization)
+def get_current_user_id(user: dict[str, Any] = Depends(get_current_user)) -> str:
     return user["id"]
 
 
@@ -154,6 +153,7 @@ class CreateOrderRequest(BaseModel):
     trek_id: str = Field(..., min_length=1)
     # Accepted for backwards compatibility with the frontend; ignored — orders are always INR.
     currency: Optional[str] = None
+    departure_date: Optional[str] = None
 
 
 class CreateOrderResponse(BaseModel):
@@ -173,12 +173,6 @@ class VerifyPaymentRequest(BaseModel):
     user_email: Optional[str] = None
     customer_name: Optional[str] = None
     departure_date: Optional[str] = None
-
-
-class TestEmailRequest(BaseModel):
-    recipient_email: str
-    trek_id: str = "kedarkantha-trek"
-    departure_date: Optional[str] = "2026-10-15"
 
 
 def _booking_email_details(
@@ -218,9 +212,9 @@ def _send_confirmation_email_safe(
     details = _booking_email_details(booking, trek_id, user_email, customer_name, departure_date)
     email_sent = send_booking_confirmation_email(user_email, details)
     if email_sent:
-        logger.info("booking confirmation email_sent=true to=%s", user_email)
+        logger.info("booking confirmation email_sent=true")
     else:
-        logger.warning("booking confirmation email_sent=false to=%s", user_email)
+        logger.warning("booking confirmation email_sent=false")
     return email_sent
 
 
@@ -282,7 +276,7 @@ def _parse_departure_date(value: Optional[str]) -> Optional[str]:
     if not value:
         return None
     try:
-        return date.fromisoformat(value.strip()[:10]).isoformat()
+        return date.fromisoformat(value.strip()).isoformat()
     except ValueError:
         logger.warning("Ignoring invalid departure_date=%r", value)
         return None
@@ -381,7 +375,7 @@ def _insert_booking(booking_row: dict[str, Any]) -> dict[str, Any]:
 
 
 @payments_router.post("/create-order", response_model=CreateOrderResponse)
-async def create_order(body: CreateOrderRequest, user_id: str = Depends(get_current_user_id)):
+def create_order(body: CreateOrderRequest, user_id: str = Depends(get_current_user_id)):
     logger.info("create-order request received: trek_id=%s user_id=%s", body.trek_id, user_id)
 
     if _missing_env():
@@ -390,9 +384,16 @@ async def create_order(body: CreateOrderRequest, user_id: str = Depends(get_curr
     if body.trek_id not in TREK_PRICES:
         raise HTTPException(status_code=400, detail="Invalid trek.")
 
+    departure_date = _parse_departure_date(body.departure_date)
+    if body.departure_date and body.departure_date.strip() and not departure_date:
+        raise HTTPException(status_code=400, detail="Invalid departure date.")
+
     amount_inr = TREK_PRICES[body.trek_id]
     amount_paise = int(amount_inr * 100)
     currency = BOOKING_CURRENCY
+    notes = {"trek_id": body.trek_id, "user_id": user_id}
+    if departure_date:
+        notes["departure_date"] = departure_date
 
     key_id = os.environ.get("RAZORPAY_KEY_ID")
     client = get_razorpay_client()
@@ -404,7 +405,7 @@ async def create_order(body: CreateOrderRequest, user_id: str = Depends(get_curr
                 "amount": amount_paise,
                 "currency": currency,
                 "receipt": receipt,
-                "notes": {"trek_id": body.trek_id, "user_id": user_id},
+                "notes": notes,
             }
         )
     except Exception as exc:
@@ -422,7 +423,7 @@ async def create_order(body: CreateOrderRequest, user_id: str = Depends(get_curr
 
 
 @payments_router.post("/verify")
-async def verify_payment(
+def verify_payment(
     body: VerifyPaymentRequest,
     background_tasks: BackgroundTasks,
     user: dict[str, Any] = Depends(get_current_user)
@@ -436,12 +437,12 @@ async def verify_payment(
     resolved_customer_name = body.customer_name or jwt_name
 
     logger.info(
-        "verify request received: service_role_present=%s trek_id=%s payment_id=%s user_id=%s user_email=%s",
+        "verify request received: service_role_present=%s trek_id=%s payment_id=%s user_id=%s email_present=%s",
         bool(os.environ.get("SUPABASE_SERVICE_ROLE_KEY")),
         body.trek_id,
         body.razorpay_payment_id,
         user_id,
-        recipient_email,
+        bool(recipient_email),
     )
 
     if _missing_env():
@@ -468,7 +469,10 @@ async def verify_payment(
     if body.amount is not None and float(body.amount) != float(amount_inr):
         raise HTTPException(status_code=400, detail="Invalid payment amount.")
 
-    departure_date = _parse_departure_date(body.departure_date)
+    # Date stored on the order at create time wins; body value covers older clients.
+    departure_date = _parse_departure_date(order["notes"].get("departure_date")) or _parse_departure_date(
+        body.departure_date
+    )
 
     existing = _find_booking_by_payment_id(body.razorpay_payment_id)
     if existing:
@@ -489,7 +493,7 @@ async def verify_payment(
                 recipient_email = payment_info.get("email")
                 if not resolved_customer_name:
                     resolved_customer_name = (payment_info.get("notes") or {}).get("name") or (payment_info.get("email") or "").split("@")[0]
-                logger.info("Resolved email from Razorpay payment record: %s", recipient_email)
+                logger.info("Resolved email from Razorpay payment record: email_present=%s", bool(recipient_email))
         except Exception as exc:
             logger.warning("Failed to fetch payment details from Razorpay: %s", exc)
 
@@ -553,33 +557,3 @@ async def verify_payment(
         "email_sent": bool(recipient_email),
         "email_to": recipient_email,
     }
-
-
-@payments_router.post("/debug/send-test-email")
-async def send_test_email(body: TestEmailRequest):
-    if os.environ.get("DEBUG_EMAIL_TEST") != "true":
-        raise HTTPException(status_code=403, detail="Debug endpoints are disabled.")
-    
-    mock_booking = {
-        "created_at": "2026-05-23T12:00:00Z",
-        "amount": TREK_PRICES.get(body.trek_id, 8500.0),
-        "currency": "INR",
-        "razorpay_order_id": "order_debug123",
-        "razorpay_payment_id": "pay_debug123",
-        "booking_status": "confirmed",
-        "payment_status": "paid",
-    }
-    
-    details = _booking_email_details(
-        mock_booking,
-        body.trek_id,
-        body.recipient_email,
-        "Debug User",
-        body.departure_date
-    )
-    
-    success = send_booking_confirmation_email(body.recipient_email, details)
-    if success:
-        return {"success": True, "message": f"Test email sent successfully to {body.recipient_email}."}
-    else:
-        raise HTTPException(status_code=500, detail="Failed to send test email. Check server logs.")

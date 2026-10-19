@@ -1,234 +1,158 @@
-"""Unit tests for /payments/verify with mocked Razorpay and Supabase PostgREST.
-
-Run: pip install -r backend/requirements.txt pytest httpx && pytest tests/
-"""
-import hashlib
-import hmac
-import sys
-from pathlib import Path
-
+"""Tests for POST /payments/verify."""
 import pytest
 
-BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
-sys.path.insert(0, str(BACKEND_DIR))
-
-from fastapi import FastAPI  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
-
-import payments  # noqa: E402
-from trek_prices import TREK_PRICES  # noqa: E402
-
-KEY_SECRET = "test_razorpay_secret"
-USER_ID = "11111111-1111-1111-1111-111111111111"
-OTHER_USER_ID = "22222222-2222-2222-2222-222222222222"
-USER_EMAIL = "owner@example.com"
-CHEAP_TREK = "kedarkantha-trek"
-EXPENSIVE_TREK = "stok-kangri-expedition"
-ORDER_ID = "order_test123"
-PAYMENT_ID = "pay_test123"
+from tests.conftest import (
+    CHEAP_TREK,
+    EXPENSIVE_TREK,
+    ORDER_ID,
+    OTHER_USER_ID,
+    PAYMENT_ID,
+    TREK_PRICES,
+    USER_EMAIL,
+    USER_ID,
+    make_order,
+    sign,
+)
 
 
-def _sign(order_id: str, payment_id: str) -> str:
-    return hmac.new(
-        KEY_SECRET.encode(), f"{order_id}|{payment_id}".encode(), hashlib.sha256
-    ).hexdigest()
-
-
-def _order(trek_id=CHEAP_TREK, user_id=USER_ID, amount=None, currency="INR"):
-    return {
-        "id": ORDER_ID,
-        "amount": int(TREK_PRICES[trek_id] * 100) if amount is None else amount,
-        "currency": currency,
-        "notes": {"trek_id": trek_id, "user_id": user_id},
-    }
-
-
-class FakeResponse:
-    def __init__(self, status_code, payload):
-        self.status_code = status_code
-        self._payload = payload
-        self.text = str(payload)
-
-    def json(self):
-        return self._payload
-
-
-class FakeRazorpay:
-    def __init__(self, order):
-        self.order = self._Orders(order)
-        self.payment = self._Payments()
-
-    class _Orders:
-        def __init__(self, order):
-            self._order = order
-
-        def fetch(self, order_id):
-            assert order_id == ORDER_ID
-            return self._order
-
-    class _Payments:
-        def fetch(self, payment_id):
-            return {"email": "razorpay-fallback@example.com", "notes": {}}
-
-
-class FakeSupabase:
-    """Stands in for requests.get/post against the bookings PostgREST endpoint."""
-
-    def __init__(self, existing=None):
-        self.existing = existing
-        self.inserted = []
-
-    def get(self, url, params=None, headers=None, timeout=None):
-        assert url.endswith("/rest/v1/bookings")
-        return FakeResponse(200, [self.existing] if self.existing else [])
-
-    def post(self, url, headers=None, json=None, timeout=None):
-        assert url.endswith("/rest/v1/bookings")
-        self.inserted.append(json)
-        return FakeResponse(201, [{"id": "booking-1", "created_at": "2026-10-19T00:00:00Z", **json}])
-
-
-@pytest.fixture
-def setup(monkeypatch):
-    monkeypatch.setenv("RAZORPAY_KEY_ID", "rzp_test_key")
-    monkeypatch.setenv("RAZORPAY_KEY_SECRET", KEY_SECRET)
-    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
-    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "service_role_test")
-
-    sent_emails = []
-    monkeypatch.setattr(
-        payments,
-        "send_booking_confirmation_email",
-        lambda to, details: sent_emails.append((to, details)) or True,
-    )
-
-    app = FastAPI()
-    app.include_router(payments.payments_router)
-    app.dependency_overrides[payments.get_current_user] = lambda: {
-        "id": USER_ID,
-        "email": USER_EMAIL,
-        "user_metadata": {"full_name": "Owner"},
-    }
-
-    def configure(order, existing=None):
-        supabase = FakeSupabase(existing=existing)
-        monkeypatch.setattr(payments.requests, "get", supabase.get)
-        monkeypatch.setattr(payments.requests, "post", supabase.post)
-        monkeypatch.setattr(payments, "get_razorpay_client", lambda: FakeRazorpay(order))
-        return supabase
-
-    return TestClient(app), configure, sent_emails
-
-
-def _verify_body(trek_id, **extra):
+def verify_body(trek_id=CHEAP_TREK, **extra):
     return {
         "razorpay_order_id": ORDER_ID,
         "razorpay_payment_id": PAYMENT_ID,
-        "razorpay_signature": _sign(ORDER_ID, PAYMENT_ID),
+        "razorpay_signature": sign(),
         "trek_id": trek_id,
         **extra,
     }
 
 
-def test_trek_mismatch_rejected(setup):
-    client, configure, sent_emails = setup
-    supabase = configure(_order(trek_id=CHEAP_TREK))
+def test_bad_signature_rejected(harness):
+    supabase = harness.configure(make_order())
+
+    resp = harness.client.post(
+        "/payments/verify", json=verify_body(razorpay_signature="0" * 64)
+    )
+
+    assert resp.status_code == 400
+    assert harness.razorpay.fetched_orders == []
+    assert supabase.inserted == []
+
+
+def test_trek_mismatch_rejected(harness):
+    supabase = harness.configure(make_order(trek_id=CHEAP_TREK))
 
     # Paid for the cheap trek, tries to book the expensive one.
-    resp = client.post(
+    resp = harness.client.post(
         "/payments/verify",
-        json=_verify_body(EXPENSIVE_TREK, amount=TREK_PRICES[EXPENSIVE_TREK]),
+        json=verify_body(EXPENSIVE_TREK, amount=TREK_PRICES[EXPENSIVE_TREK]),
     )
 
     assert resp.status_code == 400
     assert supabase.inserted == []
-    assert sent_emails == []
+    assert harness.sent_emails == []
 
 
-def test_user_mismatch_rejected(setup):
-    client, configure, sent_emails = setup
-    supabase = configure(_order(user_id=OTHER_USER_ID))
+def test_user_mismatch_rejected(harness):
+    supabase = harness.configure(make_order(user_id=OTHER_USER_ID))
 
-    resp = client.post("/payments/verify", json=_verify_body(CHEAP_TREK))
+    resp = harness.client.post("/payments/verify", json=verify_body())
 
     assert resp.status_code == 400
     assert supabase.inserted == []
-    assert sent_emails == []
+    assert harness.sent_emails == []
 
 
 @pytest.mark.parametrize(
     "order",
     [
-        _order(amount=100),
-        _order(currency="USD"),
+        make_order(amount=100),
+        make_order(currency="USD"),
         {"id": ORDER_ID, "amount": 899900, "currency": "INR", "notes": []},
     ],
-    ids=["amount", "currency", "no-notes"],
+    ids=["order-amount", "order-currency", "order-without-notes"],
 )
-def test_order_amount_currency_or_notes_mismatch_rejected(setup, order):
-    client, configure, _ = setup
-    supabase = configure(order)
+def test_order_amount_currency_or_notes_mismatch_rejected(harness, order):
+    supabase = harness.configure(order)
 
-    resp = client.post("/payments/verify", json=_verify_body(CHEAP_TREK))
+    resp = harness.client.post("/payments/verify", json=verify_body())
 
     assert resp.status_code == 400
     assert supabase.inserted == []
 
 
-def test_bad_signature_rejected(setup):
-    client, configure, _ = setup
-    configure(_order())
-    body = _verify_body(CHEAP_TREK)
-    body["razorpay_signature"] = "0" * 64
+def test_client_amount_mismatch_rejected(harness):
+    supabase = harness.configure(make_order())
 
-    resp = client.post("/payments/verify", json=body)
+    resp = harness.client.post("/payments/verify", json=verify_body(amount=1))
 
     assert resp.status_code == 400
+    assert supabase.inserted == []
 
 
-def test_existing_booking_of_other_user_returns_409(setup):
-    client, configure, sent_emails = setup
+def test_razorpay_order_fetch_failure_returns_502(harness):
+    supabase = harness.configure(make_order())
+
+    def boom(order_id):
+        raise RuntimeError("razorpay down")
+
+    harness.razorpay.order.fetch = boom
+
+    resp = harness.client.post("/payments/verify", json=verify_body())
+
+    assert resp.status_code == 502
+    assert supabase.inserted == []
+
+
+def test_existing_booking_of_other_user_returns_409(harness):
     existing = {
         "id": "booking-other",
         "user_id": OTHER_USER_ID,
         "trek_id": CHEAP_TREK,
         "razorpay_payment_id": PAYMENT_ID,
     }
-    supabase = configure(_order(), existing=existing)
+    supabase = harness.configure(make_order(), existing=existing)
 
-    resp = client.post("/payments/verify", json=_verify_body(CHEAP_TREK))
+    resp = harness.client.post("/payments/verify", json=verify_body())
 
     assert resp.status_code == 409
     assert supabase.inserted == []
-    assert sent_emails == []
+    assert harness.sent_emails == []
 
 
-def test_existing_booking_of_same_user_returned(setup):
-    client, configure, sent_emails = setup
+def test_existing_booking_of_same_user_returned(harness):
     existing = {
         "id": "booking-mine",
         "user_id": USER_ID,
         "trek_id": CHEAP_TREK,
         "razorpay_payment_id": PAYMENT_ID,
     }
-    supabase = configure(_order(), existing=existing)
+    supabase = harness.configure(make_order(), existing=existing)
 
-    resp = client.post("/payments/verify", json=_verify_body(CHEAP_TREK))
+    resp = harness.client.post("/payments/verify", json=verify_body())
 
     assert resp.status_code == 200
     assert resp.json()["booking"]["id"] == "booking-mine"
     assert supabase.inserted == []
-    assert [to for to, _ in sent_emails] == [USER_EMAIL]
+    assert harness.email_recipients == [USER_EMAIL]
 
 
-def test_happy_path_books_order_trek_and_emails_jwt_address(setup):
-    client, configure, sent_emails = setup
-    supabase = configure(_order())
+def test_repeat_verify_is_idempotent(harness):
+    supabase = harness.configure(make_order())
 
-    resp = client.post(
+    first = harness.client.post("/payments/verify", json=verify_body())
+    second = harness.client.post("/payments/verify", json=verify_body())
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert len(supabase.inserted) == 1
+    assert first.json()["booking"]["id"] == second.json()["booking"]["id"]
+
+
+def test_happy_path_books_order_trek_and_emails_jwt_address(harness):
+    supabase = harness.configure(make_order())
+
+    resp = harness.client.post(
         "/payments/verify",
-        json=_verify_body(
-            CHEAP_TREK,
+        json=verify_body(
             amount=TREK_PRICES[CHEAP_TREK],
             user_email="attacker@example.com",
             departure_date="2026-02-15",
@@ -246,40 +170,26 @@ def test_happy_path_books_order_trek_and_emails_jwt_address(setup):
     assert row["trek_id"] == CHEAP_TREK
     assert row["amount"] == TREK_PRICES[CHEAP_TREK]
     assert row["currency"] == "INR"
+    assert row["razorpay_order_id"] == ORDER_ID
+    assert row["razorpay_payment_id"] == PAYMENT_ID
     assert row["departure_date"] == "2026-02-15"
 
-    assert [to for to, _ in sent_emails] == [USER_EMAIL]
+    assert harness.email_recipients == [USER_EMAIL]
 
 
-def test_invalid_departure_date_is_dropped(setup):
-    client, configure, _ = setup
-    supabase = configure(_order())
+def test_departure_date_from_order_notes_wins_over_body(harness):
+    supabase = harness.configure(make_order(departure_date="2026-03-01"))
 
-    resp = client.post("/payments/verify", json=_verify_body(CHEAP_TREK, departure_date=""))
+    resp = harness.client.post("/payments/verify", json=verify_body(departure_date="2026-02-15"))
+
+    assert resp.status_code == 200
+    assert supabase.inserted[0]["departure_date"] == "2026-03-01"
+
+
+def test_invalid_departure_date_is_dropped(harness):
+    supabase = harness.configure(make_order())
+
+    resp = harness.client.post("/payments/verify", json=verify_body(departure_date=""))
 
     assert resp.status_code == 200
     assert "departure_date" not in supabase.inserted[0]
-
-
-def test_create_order_ignores_client_currency(setup, monkeypatch):
-    client, _, _ = setup
-    created = []
-
-    class Orders:
-        def create(self, data):
-            created.append(data)
-            return {"id": ORDER_ID, **data}
-
-    class Client:
-        order = Orders()
-
-    monkeypatch.setattr(payments, "get_razorpay_client", lambda: Client())
-    app = client.app
-    app.dependency_overrides[payments.get_current_user_id] = lambda: USER_ID
-
-    resp = client.post("/payments/create-order", json={"trek_id": CHEAP_TREK, "currency": "USD"})
-
-    assert resp.status_code == 200
-    assert created[0]["currency"] == "INR"
-    assert created[0]["amount"] == int(TREK_PRICES[CHEAP_TREK] * 100)
-    assert created[0]["notes"] == {"trek_id": CHEAP_TREK, "user_id": USER_ID}
