@@ -63,8 +63,11 @@ async function authHeaders() {
   };
 }
 
-export async function createPaymentOrder({ trekId }) {
-  return apiPost('/api/payments/create-order', { trek_id: trekId, currency: 'INR' });
+export async function createPaymentOrder({ trekId, departureDate }) {
+  return apiPost('/api/payments/create-order', {
+    trek_id: trekId,
+    departure_date: departureDate || null,
+  });
 }
 
 export async function verifyPayment({
@@ -73,7 +76,6 @@ export async function verifyPayment({
   razorpaySignature,
   trekId,
   amount,
-  userEmail,
   customerName,
   departureDate,
 }) {
@@ -86,7 +88,6 @@ export async function verifyPayment({
         razorpay_signature: razorpaySignature,
         trek_id: trekId,
         amount,
-        user_email: userEmail,
         customer_name: customerName,
         departure_date: departureDate,
       },
