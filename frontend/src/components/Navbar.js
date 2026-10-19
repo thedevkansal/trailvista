@@ -1,9 +1,109 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ChevronDown, Sun, Moon } from 'lucide-react';
+import { Menu, X, ChevronDown, Sun, Moon, Compass, Receipt, User, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { displayName, initialsOf } from '../lib/user';
+
+const ACCOUNT_LINKS = [
+  { tab: 'bookings', label: 'My bookings', icon: Compass },
+  { tab: 'payments', label: 'Payments', icon: Receipt },
+  { tab: 'profile', label: 'Profile', icon: User },
+];
+
+const Avatar = ({ name, size = 'h-9 w-9 text-xs' }) => (
+  <span
+    className={`${size} inline-flex flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#F2A65A] to-[#38BDF8] font-display font-semibold text-[#020617]`}
+    aria-hidden="true"
+  >
+    {initialsOf(name) || '?'}
+  </span>
+);
+
+const ProfileMenu = ({ name, email, onLogout }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const location = useLocation();
+
+  useEffect(() => setOpen(false), [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Account menu"
+        className="flex items-center gap-1.5 rounded-full p-0.5 pr-2 hover:bg-white/5"
+        data-testid="nav-profile-button"
+      >
+        <Avatar name={name} />
+        <ChevronDown className={`h-4 w-4 tv-navbar-text transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="menu"
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className="tv-surface absolute right-0 top-full mt-3 w-64 origin-top-right overflow-hidden rounded-2xl border border-white/10 bg-[#071827]/95 shadow-2xl backdrop-blur-xl"
+          >
+            <div className="flex items-center gap-3 border-b border-white/10 p-4">
+              <Avatar name={name} size="h-10 w-10 text-sm" />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-white">{name}</p>
+                <p className="truncate text-xs text-[#94A3B8]">{email}</p>
+              </div>
+            </div>
+            <div className="p-1.5">
+              {ACCOUNT_LINKS.map(({ tab, label, icon: Icon }) => (
+                <Link
+                  key={tab}
+                  role="menuitem"
+                  to={`/account?tab=${tab}`}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white hover:bg-white/5"
+                >
+                  <Icon className="h-4 w-4 text-[#94A3B8]" />
+                  {label}
+                </Link>
+              ))}
+            </div>
+            <div className="border-t border-white/10 p-1.5">
+              <button
+                type="button"
+                role="menuitem"
+                onClick={onLogout}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-white hover:bg-white/5"
+                data-testid="nav-logout-button"
+              >
+                <LogOut className="h-4 w-4 text-[#94A3B8]" />
+                Sign out
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,19 +127,7 @@ const Navbar = () => {
     }
   }, [isPasswordRecovery, location, navigate]);
 
-  const getUserDisplayName = () => {
-    if (!user) return '';
-    if (user.profile?.full_name) {
-      return user.profile.full_name;
-    }
-    if (user.user_metadata?.full_name) {
-      return user.user_metadata.full_name;
-    }
-    if (user.email) {
-      return user.email.split('@')[0];
-    }
-    return 'Explorer';
-  };
+  const getUserDisplayName = () => displayName(user);
 
   const isActive = (path) => location.pathname === path;
 
@@ -174,45 +262,38 @@ const Navbar = () => {
               </button>
               {user ? (
                 <>
-                  <span className="text-sm font-medium tv-navbar-text px-2 max-w-[150px] truncate" title={getUserDisplayName()}>
-                    Hi, {getUserDisplayName()}
-                  </span>
-                  <button
-                    onClick={async () => {
+                  <Link
+                    to="/treks"
+                    className="tv-btn-primary h-10 px-5 text-sm whitespace-nowrap"
+                    data-testid="nav-book-trek-button"
+                  >
+                    Book a trek
+                  </Link>
+                  <ProfileMenu
+                    name={getUserDisplayName()}
+                    email={user.email}
+                    onLogout={async () => {
                       await logout();
                       navigate('/');
                     }}
-                    className="px-4 py-2 rounded-full border border-white/20 hover:border-red-500 hover:text-red-500 text-sm font-semibold tv-navbar-text transition-all active:scale-95"
-                    data-testid="nav-logout-button"
-                  >
-                    Logout
-                  </button>
-                  <Link to="/treks">
-                    <button
-                      className="bg-[#F97316] hover:bg-[#ea580c] text-white px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 whitespace-nowrap"
-                      data-testid="nav-book-trek-button"
-                    >
-                      Book a Trek
-                    </button>
-                  </Link>
+                  />
                 </>
               ) : (
                 <>
-                  <Link to="/login">
-                    <button
-                      className="px-4 py-2 rounded-full border border-white/20 hover:border-[#38BDF8] text-sm font-semibold tv-navbar-text transition-all active:scale-95"
-                      data-testid="nav-login-button"
-                    >
-                      Login
-                    </button>
+                  <Link
+                    to="/login"
+                    className="h-10 inline-flex items-center px-4 rounded-full text-sm font-semibold tv-navbar-text hover:text-[#38BDF8]"
+                    data-testid="nav-login-button"
+                  >
+                    Sign in
                   </Link>
-                  <Link to="/signup" state={{ from: '/treks' }}>
-                    <button
-                      className="bg-[#F97316] hover:bg-[#ea580c] text-white px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 whitespace-nowrap"
-                      data-testid="nav-book-trek-button"
-                    >
-                      Book a Trek
-                    </button>
+                  <Link
+                    to="/signup"
+                    state={{ from: '/treks' }}
+                    className="tv-btn-primary h-10 px-5 text-sm whitespace-nowrap"
+                    data-testid="nav-book-trek-button"
+                  >
+                    Book a trek
                   </Link>
                 </>
               )}
@@ -257,37 +338,62 @@ const Navbar = () => {
                   <Link to="/contact" className="tv-navbar-text hover:text-[#38BDF8] transition-colors" data-testid="mobile-contact-link" onClick={() => setIsOpen(false)}>Contact</Link>
                   {user ? (
                     <>
-                      <div className="tv-navbar-text font-semibold px-2 py-1 border-t border-white/10 text-sm">
-                        Hi, {getUserDisplayName()}
+                      <div className="flex items-center gap-3 border-t border-white/10 pt-4">
+                        <Avatar name={getUserDisplayName()} />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold tv-navbar-text">{getUserDisplayName()}</p>
+                          <p className="truncate text-xs text-[#94A3B8]">{user.email}</p>
+                        </div>
                       </div>
-                      <button 
+                      {ACCOUNT_LINKS.map(({ tab, label, icon: Icon }) => (
+                        <Link
+                          key={tab}
+                          to={`/account?tab=${tab}`}
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-3 tv-navbar-text hover:text-[#38BDF8]"
+                        >
+                          <Icon className="h-4 w-4 text-[#94A3B8]" />
+                          {label}
+                        </Link>
+                      ))}
+                      <Link
+                        to="/treks"
+                        onClick={() => setIsOpen(false)}
+                        className="tv-btn-primary h-11 w-full text-sm"
+                        data-testid="mobile-book-trek-button"
+                      >
+                        Book a trek
+                      </Link>
+                      <button
                         onClick={async () => {
                           setIsOpen(false);
                           await logout();
                           navigate('/');
                         }}
-                        className="w-full border border-white/20 hover:border-red-500 hover:text-red-500 text-white px-6 py-2 rounded-full text-sm font-semibold transition-all"
+                        className="tv-btn-ghost h-11 w-full text-sm"
                         data-testid="mobile-logout-button"
                       >
-                        Logout
+                        Sign out
                       </button>
-                      <Link to="/treks" onClick={() => setIsOpen(false)}>
-                        <button className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all" data-testid="mobile-book-trek-button">
-                          Book a Trek
-                        </button>
-                      </Link>
                     </>
                   ) : (
                     <>
-                      <Link to="/login" onClick={() => setIsOpen(false)}>
-                        <button className="w-full border border-white/20 hover:border-[#38BDF8] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all" data-testid="mobile-login-button">
-                          Login
-                        </button>
+                      <Link
+                        to="/signup"
+                        state={{ from: '/treks' }}
+                        onClick={() => setIsOpen(false)}
+                        className="tv-btn-primary h-11 w-full text-sm"
+                        data-testid="mobile-book-trek-button"
+                      >
+                        Book a trek
                       </Link>
-                      <Link to="/signup" state={{ from: '/treks' }} onClick={() => setIsOpen(false)}>
-                        <button className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-2 rounded-full text-sm font-semibold transition-all" data-testid="mobile-book-trek-button">
-                          Book a Trek
-                        </button>
+                      <Link
+                        to="/login"
+                        onClick={() => setIsOpen(false)}
+                        className="tv-btn-ghost h-11 w-full text-sm"
+                        data-testid="mobile-login-button"
+                      >
+                        Sign in
                       </Link>
                     </>
                   )}
