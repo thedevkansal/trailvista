@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { submitEnquiry } from '../lib/enquiryService';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -8,22 +9,39 @@ const Contact = () => {
     email: '',
     phone: '',
     subject: '',
-    message: ''
+    message: '',
+    website: ''
   });
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-    }, 3000);
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      await submitEnquiry({
+        source: 'contact',
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        subject: formData.subject,
+        message: formData.message,
+        website: formData.website,
+      });
+      setShowSuccess(true);
+      setFormData({ name: '', email: '', phone: '', subject: '', message: '', website: '' });
+    } catch (err) {
+      setSubmitError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -107,7 +125,18 @@ const Contact = () => {
           >
             <div className="bg-[#071827] border border-white/10 rounded-2xl p-8">
               {!showSuccess ? (
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6 relative">
+                  {/* Honeypot for bots; hidden from people and screen readers */}
+                  <input
+                    type="text"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleChange}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    className="absolute -left-[9999px] h-0 w-0 opacity-0"
+                  />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="text-[#94A3B8] text-sm mb-2 block">Full Name *</label>
@@ -187,13 +216,17 @@ const Contact = () => {
                     />
                   </div>
 
+                  {submitError && (
+                    <p className="text-red-400 text-sm" role="alert" data-testid="contact-submit-error">{submitError}</p>
+                  )}
                   <button
                     type="submit"
-                    className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-4 rounded-lg font-bold transition-all active:scale-95 flex items-center justify-center space-x-2"
+                    disabled={submitting}
+                    className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-4 rounded-lg font-bold transition-all active:scale-95 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:active:scale-100"
                     data-testid="contact-submit-button"
                   >
                     <Send className="h-5 w-5" />
-                    <span>Send Message</span>
+                    <span>{submitting ? 'Sending...' : 'Send Message'}</span>
                   </button>
                 </form>
               ) : (

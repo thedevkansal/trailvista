@@ -8,6 +8,7 @@ load_dotenv(ROOT_DIR / ".env")
 
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.responses import JSONResponse
+from enquiries import enquiries_router
 from payments import payments_router
 from starlette.middleware.cors import CORSMiddleware
 
@@ -61,6 +62,7 @@ async def health_check():
 
 
 api_router.include_router(payments_router)
+api_router.include_router(enquiries_router)
 app.include_router(api_router)
 
 

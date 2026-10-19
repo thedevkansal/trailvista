@@ -4,7 +4,7 @@ import os
 import smtplib
 import requests
 from email.message import EmailMessage
-from typing import Any
+from typing import Any, Optional
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -260,38 +260,77 @@ def _send_message(msg: EmailMessage, from_email: str, to_email: str) -> None:
             server.send_message(msg, from_addr=from_email, to_addrs=[to_email])
 
 
-def _send_via_resend(to_email: str, subject: str, text_body: str, html_body: str) -> bool:
+def _send_via_resend(
+    to_email: str,
+    subject: str,
+    text_body: str,
+    html_body: str,
+    reply_to: Optional[str] = None,
+) -> bool:
     api_key = os.environ.get("RESEND_API_KEY")
     from_email = os.environ.get("EMAIL_FROM") or os.environ.get("SMTP_FROM_EMAIL") or "onboarding@resend.dev"
     from_name = os.environ.get("SMTP_FROM_NAME", "TrailVista")
-    
+
     sender_line = f"{from_name} <{from_email}>" if from_name else from_email
-    
-    logger.info("resend email queued")
+    payload = {
+        "from": sender_line,
+        "to": [to_email],
+        "subject": subject,
+        "html": html_body,
+        "text": text_body,
+    }
+    if reply_to:
+        payload["reply_to"] = reply_to
+
     try:
         response = requests.post(
             "https://api.resend.com/emails",
             headers={
                 "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
-            json={
-                "from": sender_line,
-                "to": [to_email],
-                "subject": subject,
-                "html": html_body,
-                "text": text_body
-            },
-            timeout=15
+            json=payload,
+            timeout=15,
         )
         if response.status_code in (200, 201):
-            logger.info("resend email sent successfully")
             return True
-        else:
-            logger.error("resend email failed with error: status=%s body=%s", response.status_code, response.text)
-            return False
+        logger.error("resend email failed: status=%s body=%s", response.status_code, response.text[:300])
+        return False
     except Exception as exc:
-        logger.error("resend email failed with error: %s", exc)
+        logger.error("resend email failed: %s", exc)
+        return False
+
+
+def _deliver(
+    to_email: str,
+    subject: str,
+    text_body: str,
+    html_body: str,
+    reply_to: Optional[str] = None,
+) -> bool:
+    """Send through Resend when configured, otherwise SMTP. Never raises."""
+    if os.environ.get("RESEND_API_KEY"):
+        return _send_via_resend(to_email, subject, text_body, html_body, reply_to)
+
+    if not _smtp_configured():
+        logger.error("email not sent: no provider configured")
+        return False
+
+    from_email = os.environ["SMTP_FROM_EMAIL"]
+    from_name = os.environ.get("SMTP_FROM_NAME", "TrailVista Expeditions")
+    try:
+        message = EmailMessage()
+        message["Subject"] = subject
+        message["From"] = f"{from_name} <{from_email}>"
+        message["To"] = to_email
+        if reply_to:
+            message["Reply-To"] = reply_to
+        message.set_content(text_body, charset="utf-8")
+        message.add_alternative(html_body, subtype="html", charset="utf-8")
+        _send_message(message, from_email, to_email)
+        return True
+    except Exception as exc:
+        logger.error("smtp email failed: %s", exc)
         return False
 
 
@@ -302,39 +341,50 @@ def send_booking_confirmation_email(to_email: str, booking_details: dict[str, An
         logger.warning("Booking confirmation skipped: no recipient email found.")
         return False
 
-    resend_key = os.environ.get("RESEND_API_KEY")
-    if resend_key:
-        logger.info("booking email provider selected: resend")
-        try:
-            subject, text_body, html_body = _build_email_content(booking_details)
-            return _send_via_resend(recipient, subject, text_body, html_body)
-        except Exception as exc:
-            logger.error("Booking confirmation email failed: %s", exc)
-            return False
-
-    logger.info("booking email provider selected: smtp")
-    logger.info("Booking confirmation email queued/sending to: %s", recipient)
-
-    if not _smtp_configured():
-        logger.error("booking confirmation email failed to=%s reason=SMTP_NOT_CONFIGURED", recipient)
-        return False
-
-    from_email = os.environ["SMTP_FROM_EMAIL"]
-    from_name = os.environ.get("SMTP_FROM_NAME", "TrailVista Expeditions")
-
     try:
         subject, text_body, html_body = _build_email_content(booking_details)
-
-        message = EmailMessage()
-        message["Subject"] = subject
-        message["From"] = f"{from_name} <{from_email}>"
-        message["To"] = recipient
-        message.set_content(text_body, charset="utf-8")
-        message.add_alternative(html_body, subtype="html", charset="utf-8")
-
-        _send_message(message, from_email, recipient)
-        logger.info("Booking confirmation email sent successfully")
-        return True
     except Exception as exc:
-        logger.error("Booking confirmation email failed: %s", exc)
+        logger.error("Booking confirmation email could not be built: %s", exc)
         return False
+
+    sent = _deliver(recipient, subject, text_body, html_body)
+    logger.info("booking confirmation email_sent=%s", sent)
+    return sent
+
+
+_ENQUIRY_FIELDS = (
+    ("Source", "source"),
+    ("Name", "name"),
+    ("Email", "email"),
+    ("Phone", "phone"),
+    ("Subject", "subject"),
+    ("Trek", "trek_name"),
+    ("Travel month", "travel_month"),
+    ("Group size", "group_size"),
+    ("Message", "message"),
+)
+
+
+def send_enquiry_notification(to_email: str, enquiry: dict[str, Any]) -> bool:
+    """Notify the team about a new contact/trek enquiry. Never raises."""
+    rows = [(label, enquiry.get(key)) for label, key in _ENQUIRY_FIELDS if enquiry.get(key) not in (None, "")]
+    who = enquiry.get("name") or "Someone"
+    about = enquiry.get("trek_name") or enquiry.get("subject") or "general"
+    # Strip newlines so user input can't break the subject header.
+    subject = " ".join(f"New TrailVista enquiry: {who} ({about})".split())[:150]
+
+    text_body = "\n".join(f"{label}: {value}" for label, value in rows)
+    html_rows = "".join(
+        f'<tr><td style="padding:6px 12px;color:#64748b;vertical-align:top;">{_esc(label)}</td>'
+        f'<td style="padding:6px 12px;color:#0f172a;white-space:pre-wrap;">{_esc(value)}</td></tr>'
+        for label, value in rows
+    )
+    html_body = (
+        '<div style="font-family:Arial,sans-serif;">'
+        '<h2 style="color:#0f172a;">New enquiry</h2>'
+        f'<table style="border-collapse:collapse;font-size:14px;">{html_rows}</table>'
+        "</div>"
+    )
+    sent = _deliver(to_email, subject, text_body, html_body, reply_to=enquiry.get("email"))
+    logger.info("enquiry notification email_sent=%s", sent)
+    return sent
