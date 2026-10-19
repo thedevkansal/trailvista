@@ -1,11 +1,12 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
 import TrekCard from '../components/TrekCard';
+import PageHeader from '../components/PageHeader';
+import { FadeIn } from '../components/motion';
 import { treks, destinations } from '../data/treksData';
 
 const Destinations = () => {
-  const navigate = useNavigate();
   const { id } = useParams();
 
   const allDestinations = destinations || [
@@ -22,19 +23,21 @@ const Destinations = () => {
     return (
       <div className="min-h-screen pt-32 pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12">
-            <h1 className="text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
-              TREKS IN <span className="text-[#38BDF8]">{destination?.name.toUpperCase()}</span>
-            </h1>
-            <p className="text-[#94A3B8] text-lg">{destination?.description}</p>
-          </motion.div>
+          <Link to="/destinations" className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-[#94A3B8] hover:text-white">
+            All destinations
+          </Link>
+          <PageHeader lines={['Treks in', destination?.name || 'this region']}>
+            <p>{destination?.description}</p>
+            <p className="mt-2 text-sm">
+              <span className="tv-num">{destinationTreks.length}</span> {destinationTreks.length === 1 ? 'trek' : 'treks'}
+            </p>
+          </PageHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {destinationTreks.map((trek) => (
-              <TrekCard key={trek.id} trek={trek} />
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {destinationTreks.map((trek, i) => (
+              <FadeIn key={trek.id} delay={0.06 * (i % 3)} className="h-full">
+                <TrekCard trek={trek} />
+              </FadeIn>
             ))}
           </div>
         </div>
@@ -45,36 +48,38 @@ const Destinations = () => {
   return (
     <div className="min-h-screen pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
-            EXPLORE <span className="text-[#38BDF8]">DESTINATIONS</span>
-          </h1>
-          <p className="text-[#94A3B8] text-lg">Discover trekking destinations across the Himalayas</p>
-        </motion.div>
+        <PageHeader lines={['Where in the', 'Himalaya?']}>
+          <p>Four regions, each with its own season and character. Pick one to see every trek we run there.</p>
+        </PageHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {allDestinations.map((dest, index) => (
-            <motion.div
-              key={dest.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              onClick={() => navigate(`/destinations/${dest.id}`)}
-              className="relative h-96 rounded-2xl overflow-hidden cursor-pointer group"
-            >
-              <img src={dest.image} alt={dest.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/60 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-8">
-                <h3 className="text-3xl font-black text-white hero-text uppercase mb-2">{dest.name}</h3>
-                <p className="text-[#94A3B8] mb-4">{dest.description}</p>
-                <p className="text-[#38BDF8] font-semibold">{dest.trekCount} Treks Available</p>
-              </div>
-            </motion.div>
+            <FadeIn key={dest.id} delay={0.08 * (index % 2)}>
+              <Link
+                to={`/destinations/${dest.id}`}
+                className="tv-cinematic group relative block h-[420px] overflow-hidden rounded-[28px] md:h-[480px]"
+              >
+                <img
+                  src={dest.image}
+                  alt={dest.name}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/90 via-[#020617]/30 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-6 sm:p-8">
+                  <div>
+                    <p className="text-sm text-white/70">
+                      <span className="tv-num">{dest.trekCount}</span> {dest.trekCount === 1 ? 'trek' : 'treks'}
+                    </p>
+                    <h2 className="mt-1 font-display text-4xl font-medium tracking-tight text-white sm:text-5xl">{dest.name}</h2>
+                    <p className="mt-2 text-white/80">{dest.description}</p>
+                  </div>
+                  <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors duration-300 group-hover:bg-[#F2A65A] group-hover:text-[#1A1208]">
+                    <ArrowUpRight className="h-5 w-5" />
+                  </span>
+                </div>
+              </Link>
+            </FadeIn>
           ))}
         </div>
       </div>

@@ -1,9 +1,17 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import TrekCard from '../components/TrekCard';
 import HorizontalScrollSection from '../components/HorizontalScrollSection';
+import PageHeader from '../components/PageHeader';
+import { RevealHeading, FadeIn } from '../components/motion';
 import { treks } from '../data/treksData';
+
+const REQUIREMENTS = [
+  { title: 'High-altitude experience', desc: 'At least one previous trek above 4,500 m.' },
+  { title: 'Strong fitness', desc: 'Excellent cardiovascular and muscular endurance, built over months of training.' },
+  { title: 'Technical skills', desc: 'Rope work, ice-axe arrest and crevasse rescue. We run a skills day before the climb.' },
+  { title: 'Medical clearance', desc: 'A full health check-up signed by a doctor before departure.' },
+];
 
 const Expeditions = () => {
   const navigate = useNavigate();
@@ -12,87 +20,57 @@ const Expeditions = () => {
   return (
     <div className="min-h-screen pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">Elite Adventures</p>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white hero-text uppercase mb-4">
-            HIMALAYAN <span className="text-[#38BDF8]">EXPEDITIONS</span>
-          </h1>
-          <p className="text-[#94A3B8] text-lg max-w-3xl mx-auto">
-            High-altitude peak expeditions for experienced climbers. Technical climbs requiring advanced mountaineering skills.
-          </p>
-        </motion.div>
+        <PageHeader lines={['Himalayan', 'expeditions']}>
+          <p>High-altitude peak climbs for experienced trekkers, with rope teams, summit windows and a leader who has stood on top before.</p>
+        </PageHeader>
 
-        {/* Requirements — mobile swipe, desktop grid */}
-        <HorizontalScrollSection>
-          <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
-            <h3 className="text-white font-bold mb-2">Experience Required</h3>
-            <p className="text-[#94A3B8] text-sm">Previous high-altitude trekking experience mandatory</p>
-          </div>
-          <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
-            <h3 className="text-white font-bold mb-2">Fitness Level</h3>
-            <p className="text-[#94A3B8] text-sm">Excellent cardiovascular and muscular endurance</p>
-          </div>
-          <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
-            <h3 className="text-white font-bold mb-2">Technical Skills</h3>
-            <p className="text-[#94A3B8] text-sm">Rope work, ice climbing, and crevasse rescue knowledge</p>
-          </div>
-          <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
-            <h3 className="text-white font-bold mb-2">Medical Clearance</h3>
-            <p className="text-[#94A3B8] text-sm">Comprehensive health check-up required</p>
-          </div>
-        </HorizontalScrollSection>
-        <div className="hidden md:grid md:grid-cols-4 gap-6 mb-12">
-          <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
-            <h3 className="text-white font-bold mb-2">Experience Required</h3>
-            <p className="text-[#94A3B8] text-sm">Previous high-altitude trekking experience mandatory</p>
-          </div>
-          <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
-            <h3 className="text-white font-bold mb-2">Fitness Level</h3>
-            <p className="text-[#94A3B8] text-sm">Excellent cardiovascular and muscular endurance</p>
-          </div>
-          <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
-            <h3 className="text-white font-bold mb-2">Technical Skills</h3>
-            <p className="text-[#94A3B8] text-sm">Rope work, ice climbing, and crevasse rescue knowledge</p>
-          </div>
-          <div className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center">
-            <h3 className="text-white font-bold mb-2">Medical Clearance</h3>
-            <p className="text-[#94A3B8] text-sm">Comprehensive health check-up required</p>
-          </div>
-        </div>
+        {/* Requirements */}
+        <dl className="mb-16 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+          {REQUIREMENTS.map((r, i) => (
+            <FadeIn key={r.title} delay={0.06 * i} className="border-t border-white/10 pt-6">
+              <dt className="tv-num font-display text-sm font-medium text-[#94A3B8]">0{i + 1}</dt>
+              <dd className="mt-3">
+                <p className="font-display text-xl font-medium text-white">{r.title}</p>
+                <p className="mt-2 text-sm leading-relaxed text-[#94A3B8]">{r.desc}</p>
+              </dd>
+            </FadeIn>
+          ))}
+        </dl>
 
-        {/* Expeditions Grid */}
-        {/* Mobile: horizontal swipe */}
+        {/* Expeditions: swipe on mobile, grid on desktop */}
         <HorizontalScrollSection>
           {expeditions.map((expedition) => (
             <TrekCard key={expedition.id} trek={expedition} />
           ))}
         </HorizontalScrollSection>
-        {/* Desktop: normal grid */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {expeditions.map((expedition) => (
-            <TrekCard key={expedition.id} trek={expedition} />
+        <div className="hidden gap-5 md:grid md:grid-cols-2 lg:grid-cols-3">
+          {expeditions.map((expedition, i) => (
+            <FadeIn key={expedition.id} delay={0.06 * (i % 3)} className="h-full">
+              <TrekCard trek={expedition} />
+            </FadeIn>
           ))}
         </div>
 
-        {/* Call to Action */}
-        <div className="mt-16 bg-[#071827] border border-white/10 rounded-2xl p-8 text-center">
-          <h2 className="text-3xl font-black text-white hero-text uppercase mb-4">
-            READY FOR THE <span className="text-[#38BDF8]">CHALLENGE?</span>
-          </h2>
-          <p className="text-[#94A3B8] mb-6 max-w-2xl mx-auto">
-            Our expedition team will guide you through preparation, training, and the climb itself.
-          </p>
-          <button
-            onClick={() => navigate('/contact')}
-            className="bg-[#F97316] hover:bg-[#ea580c] text-white px-8 py-3 rounded-full font-bold transition-all active:scale-95"
-            data-testid="expeditions-enquire-button"
-          >
-            Enquire Now
-          </button>
+        {/* Call to action */}
+        <div className="mt-20 grid grid-cols-1 gap-8 rounded-[28px] border border-white/10 bg-[#071827] p-8 sm:p-12 lg:grid-cols-12 lg:items-end">
+          <div className="lg:col-span-8">
+            <RevealHeading
+              lines={['Ready for the climb?']}
+              className="font-display text-4xl font-medium leading-[1.02] tracking-tight text-white sm:text-5xl"
+            />
+            <p className="mt-4 max-w-xl text-[#94A3B8]">
+              Our expedition team will guide you through preparation, training and the climb itself.
+            </p>
+          </div>
+          <div className="lg:col-span-4 lg:text-right">
+            <button
+              onClick={() => navigate('/contact')}
+              className="tv-btn-primary h-12 px-7 text-sm"
+              data-testid="expeditions-enquire-button"
+            >
+              Talk to the expedition team
+            </button>
+          </div>
         </div>
       </div>
     </div>
