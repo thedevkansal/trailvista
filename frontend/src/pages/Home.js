@@ -1,46 +1,51 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-  Users, Shield, DollarSign, Calendar, MapPin, Thermometer,
-  Heart, Award, TrendingUp, Mountain, Snowflake, Sun
-} from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowUpRight, Award, CalendarCheck, HeartPulse, CloudSun, Users, Siren } from 'lucide-react';
 import CinematicHero from '../components/CinematicHero';
 import SearchBar from '../components/SearchBar';
 import TrekCard from '../components/TrekCard';
-import GalleryMarquee from '../components/GalleryMarquee';
-import ReviewMarquee from '../components/ReviewMarquee';
 import AffiliationsStrip from '../components/AffiliationsStrip';
 import HorizontalScrollSection from '../components/HorizontalScrollSection';
-import { treks, reviews, blogPosts, categories } from '../data/treksData';
+import { SeasonPanels, Filmstrip, ReviewSpotlight, SectionHeader } from '../components/HomeSections';
+import { RevealHeading, FadeIn, CountUp } from '../components/motion';
+import { treks, reviews, blogPosts } from '../data/treksData';
 import { useAuth } from '../context/AuthContext';
+
+const galleryImages = [
+  { url: 'https://images.pexels.com/photos/12121705/pexels-photo-12121705.jpeg', description: 'Hikers crossing a snowfield' },
+  { url: 'https://images.unsplash.com/photo-1767763713139-2e5e6aadd428?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwzfHx0cmVra2luZyUyMGdyb3VwJTIwc25vd3xlbnwwfHx8fDE3NzkzOTMyMzl8MA&ixlib=rb-4.1.0&q=85', description: 'Hikers ascending a snowy mountain' },
+  { url: 'https://images.unsplash.com/photo-1698763953037-02519fb98565?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwzfHx0cmVra2VyJTIwc2lsaG91ZXR0ZSUyMG1vdW50YWlufGVufDB8fHx8MTc3OTM5MzIzOXww&ixlib=rb-4.1.0&q=85', description: 'Trekker on a summit' },
+  { url: 'https://images.unsplash.com/photo-1773081834522-7c375c2d4a21?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwyfHxoaW1hbGF5YXMlMjBtb3VudGFpbiUyMHN0YXJyeSUyMG5pZ2h0fGVufDB8fHx8MTc3OTM5MzIzOXww&ixlib=rb-4.1.0&q=85', description: 'Snow peaks under a starry sky' },
+  { url: 'https://images.unsplash.com/photo-1666501548252-d455a2b9554d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHwyfHx0cmVra2luZyUyMGdyb3VwJTIwY2FtcGluZyUyMHRlbnRzJTIwYWR2ZW50dXJlfGVufDB8fHx8MTc3OTM5MzM3NHww&ixlib=rb-4.1.0&q=85', description: 'Tents pitched in a high valley' },
+  { url: 'https://images.unsplash.com/photo-1632751796489-cd5902a5737c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHw0fHx0cmVra2luZyUyMGdyb3VwJTIwY2FtcGluZyUyMHRlbnRzJTIwYWR2ZW50dXJlfGVufDB8fHx8MTc3OTM5MzM3NHww&ixlib=rb-4.1.0&q=85', description: 'Group camp below the peaks' },
+  { url: treks[6]?.image, description: treks[6]?.name },
+  { url: treks[3]?.image, description: treks[3]?.name },
+].filter((img) => img.url);
+
+const SAFETY = [
+  { icon: Award, title: 'Certified trek leaders', desc: 'Every leader trained at the Nehru Institute of Mountaineering and holds Wilderness First Responder certification.' },
+  { icon: Users, title: 'Twelve trekkers, no more', desc: 'Small batches keep the leader-to-trekker ratio safe and the trail quiet.' },
+  { icon: HeartPulse, title: 'Oxygen and medical kits at every camp', desc: 'Oximeter checks morning and night, with oxygen cylinders and a stretcher kit carried to high camp.' },
+  { icon: CloudSun, title: 'Weather watched every day', desc: 'Summit pushes are timed to forecasts. If the window closes, we turn around.' },
+  { icon: Siren, title: 'An evacuation plan for every route', desc: 'Leaders know the nearest road head and medical post from every campsite.' },
+  { icon: CalendarCheck, title: 'Departures that run', desc: 'Once you’ve booked, your date is fixed. We don’t cancel for low sign-ups.' },
+];
 
 const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-
-  const popularTreks = treks.slice(0, 6);
-
-  const galleryImages = [
-    { url: 'https://images.pexels.com/photos/12121705/pexels-photo-12121705.jpeg', description: 'Hikers snow landscape' },
-    { url: 'https://images.unsplash.com/photo-1767763713139-2e5e6aadd428?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwzfHx0cmVra2luZyUyMGdyb3VwJTIwc25vd3xlbnwwfHx8fDE3NzkzOTMyMzl8MA&ixlib=rb-4.1.0&q=85', description: 'Hikers ascending snowy mountain' },
-    { url: 'https://images.unsplash.com/photo-1698763953037-02519fb98565?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwzfHx0cmVra2VyJTIwc2lsaG91ZXR0ZSUyMG1vdW50YWlufGVufDB8fHx8MTc3OTM5MzIzOXww&ixlib=rb-4.1.0&q=85', description: 'Person on top of mountain' },
-    { url: 'https://images.unsplash.com/photo-1773081834522-7c375c2d4a21?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwyfHxoaW1hbGF5YXMlMjBtb3VudGFpbiUyMHN0YXJyeSUyMG5pZ2h0fGVufDB8fHx8MTc3OTM5MzIzOXww&ixlib=rb-4.1.0&q=85', description: 'Snowcapped under starry night' },
-    { url: 'https://images.unsplash.com/photo-1666501548252-d455a2b9554d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHwyfHx0cmVra2luZyUyMGdyb3VwJTIwY2FtcGluZyUyMHRlbnRzJTIwYWR2ZW50dXJlfGVufDB8fHx8MTc3OTM5MzM3NHww&ixlib=rb-4.1.0&q=85', description: 'Camping tents in mountains' },
-    { url: 'https://images.unsplash.com/photo-1632751796489-cd5902a5737c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHw0fHx0cmVra2luZyUyMGdyb3VwJTIwY2FtcGluZyUyMHRlbnRzJTIwYWR2ZW50dXJlfGVufDB8fHx8MTc3OTM5MzM3NHww&ixlib=rb-4.1.0&q=85', description: 'Group camping expedition' },
-  ];
+  const [featured, ...rest] = treks.slice(0, 5);
 
   return (
-    <div className="min-h-screen">
-      {/* Cinematic Hero */}
+    <div className="min-h-screen overflow-x-clip">
       <CinematicHero
         word1="CLIMB"
         word2="BEYOND"
         word3="LIMITS"
-        subtitle="HIMALAYAN EXPEDITIONS · 2026"
-        description="Fixed departures. Certified leaders. Safety-first Himalayan expeditions for adventurers above the ordinary."
-        ctaPrimary="Explore Treks"
-        ctaSecondary="Plan Custom Trip"
+        subtitle="Himalayan treks, 2026–27 season"
+        description="Fixed departures, certified leaders and batches of twelve. Treks across Uttarakhand, Himachal, Kashmir and Ladakh."
+        ctaPrimary="Explore treks"
+        ctaSecondary="Plan a custom trip"
         onPrimaryClick={() => navigate('/treks')}
         onSecondaryClick={() => {
           if (!user) {
@@ -51,517 +56,213 @@ const Home = () => {
         }}
       />
 
-      {/* Trust & Stats Section */}
-      <section className="relative z-20 px-4 pt-16 pb-8 bg-gradient-to-b from-[#020617] to-[#071827]/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Left Column: Stats Grid (lg:col-span-5) */}
-            <div className="lg:col-span-5 grid grid-cols-3 lg:grid-cols-1 gap-4">
-              {[
-                { label: 'Happy Trekkers', value: '25,000+' },
-                { label: 'Departures Annually', value: '120+' },
-                { label: 'Rated Experience', value: '4.9 / 5' },
-              ].map((stat, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 15 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="backdrop-blur-xl bg-[#071827]/60 border border-white/10 rounded-2xl p-5 sm:p-6 text-center lg:text-left shadow-lg hover:border-[#38BDF8]/20 transition-all duration-300"
-                >
-                  <p className="text-2xl sm:text-3xl font-black text-[#38BDF8] hero-text mb-1">{stat.value}</p>
-                  <p className="text-[#94A3B8] text-xs sm:text-sm font-medium">{stat.label}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Right Column: Brand Trust Pillars (lg:col-span-7) */}
-            <div className="lg:col-span-7 space-y-6">
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                <span className="text-[#38BDF8] text-xs font-bold uppercase tracking-[0.25em]">Himalayan Pioneers</span>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white hero-text uppercase mt-2 mb-4">
-                  EXPEDITIONS ROOTED IN <span className="text-[#38BDF8]">TRUST & SAFETY</span>
-                </h2>
-                <p className="text-[#94A3B8] text-sm sm:text-base leading-relaxed mb-6 font-light">
-                  We don't offer generic tour packages. TrailVista designs production-grade, small-batch expeditions guided by certified rescue professionals.
-                </p>
-              </motion.div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  {
-                    title: 'Certified Rescue Guides',
-                    desc: 'Every leader is certified by Nehru Institute of Mountaineering and holds Wilderness First Responder (WFR) clearance.',
-                    icon: (
-                      <svg className="h-5 w-5 text-[#38BDF8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                    )
-                  },
-                  {
-                    title: 'Secure razorpay checkout',
-                    desc: 'Direct payment processing. Instant booking confirmation and transparent refund logs.',
-                    icon: (
-                      <svg className="h-5 w-5 text-[#38BDF8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    )
-                  },
-                  {
-                    title: 'Intimate Batches (Max 12)',
-                    desc: 'Small groups ensure a safe guide-to-trekker ratio and minimal environmental impact.',
-                    icon: (
-                      <svg className="h-5 w-5 text-[#38BDF8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    )
-                  },
-                  {
-                    title: '100% Guaranteed Dates',
-                    desc: 'Once booked, departures are guaranteed. We do not cancel trips due to low registration.',
-                    icon: (
-                      <svg className="h-5 w-5 text-[#38BDF8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    )
-                  }
-                ].map((pillar, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex space-x-3"
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 bg-[#38BDF8]/10 rounded-lg flex items-center justify-center mt-0.5">
-                      {pillar.icon}
-                    </div>
-                    <div>
-                      <h4 className="text-white font-bold text-sm uppercase tracking-wide">{pillar.title}</h4>
-                      <p className="text-[#94A3B8] text-xs leading-relaxed mt-1 font-light">{pillar.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
+      {/* Intro + numbers */}
+      <section className="relative z-20 px-4 pb-20 pt-20 sm:px-6 sm:pt-28 lg:px-8">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
+          <RevealHeading
+            lines={['Small groups.', 'Certified leaders.', 'Dates that hold.']}
+            className="font-display text-4xl font-medium leading-[1.02] tracking-tight text-white sm:text-5xl lg:col-span-7 lg:text-[64px]"
+          />
+          <FadeIn delay={0.2} className="lg:col-span-5 lg:pt-3">
+            <p className="text-lg leading-relaxed text-[#94A3B8]">
+              TrailVista runs small-batch Himalayan treks led by mountain rescue professionals. You bring the legs;
+              we handle permits, camps, food, safety and the logistics of getting you to the top and back.
+            </p>
+            <Link to="/about" className="mt-6 inline-flex items-center gap-1.5 font-semibold text-white hover:text-[#38BDF8]">
+              How we run our treks <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </FadeIn>
         </div>
+
+        <dl className="mx-auto mt-16 grid max-w-7xl grid-cols-3 border-y border-white/10 lg:mt-24">
+          {[
+            { value: <CountUp to={25000} suffix="+" />, label: 'trekkers guided' },
+            { value: <CountUp to={120} suffix="+" />, label: 'departures a year' },
+            { value: <CountUp to={4.9} decimals={1} />, label: 'average rating' },
+          ].map((stat, i) => (
+            <div key={i} className={`py-8 sm:py-10 ${i > 0 ? 'border-l border-white/10 pl-4 sm:pl-10' : 'pr-4'}`}>
+              <dd className="font-display text-3xl font-medium tracking-tight text-white sm:text-5xl lg:text-6xl">{stat.value}</dd>
+              <dt className="mt-2 text-xs text-[#94A3B8] sm:text-sm">{stat.label}</dt>
+            </div>
+          ))}
+        </dl>
       </section>
 
-      {/* Search/Filter Section */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Search */}
+      <section className="px-4 pb-24 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
           <SearchBar onSearch={(filters) => navigate('/treks', { state: { filters } })} />
         </div>
       </section>
 
-      {/* Popular Treks */}
-      <section className="py-16 sm:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-10 sm:mb-12"
-          >
-            <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">Featured Adventures</p>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white hero-text uppercase mb-6">
-              POPULAR <span className="text-[#38BDF8]">TREKS</span>
-            </h2>
-          </motion.div>
-
-          {/* Mobile: horizontal swipe */}
-          <HorizontalScrollSection>
-            {popularTreks.map((trek) => (
-              <TrekCard key={trek.id} trek={trek} />
-            ))}
-          </HorizontalScrollSection>
-
-          {/* Desktop: normal grid */}
-          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {popularTreks.map((trek) => (
-              <TrekCard key={trek.id} trek={trek} />
-            ))}
-          </div>
-
-          <div className="text-center mt-10 sm:mt-12">
-            <button
-              onClick={() => navigate('/treks')}
-              className="bg-[#38BDF8] hover:bg-[#0ea5e9] text-white px-8 py-3 rounded-full font-semibold transition-all active:scale-95"
+      {/* Featured treks */}
+      <section className="px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader lines={['Treks people', 'book first']}>
+            <p>Our most-booked routes this season, from first-timer winter summits to week-long lake crossings.</p>
+            <Link
+              to="/treks"
+              className="mt-4 inline-flex items-center gap-1.5 font-semibold text-white hover:text-[#38BDF8]"
               data-testid="view-all-treks-button"
             >
-              View All Treks
-            </button>
+              View all {treks.length} treks <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </SectionHeader>
+
+          <HorizontalScrollSection>
+            {treks.slice(0, 5).map((trek) => (
+              <TrekCard key={trek.id} trek={trek} />
+            ))}
+          </HorizontalScrollSection>
+
+          <div className="hidden gap-5 md:grid md:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2">
+            <FadeIn className="h-full md:col-span-2 lg:row-span-2">
+              <TrekCard trek={featured} size="large" />
+            </FadeIn>
+            {rest.map((trek, i) => (
+              <FadeIn key={trek.id} delay={0.08 * (i + 1)} className="h-full">
+                <TrekCard trek={trek} />
+              </FadeIn>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Trek Categories */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">Find Your Style</p>
-            <h2 className="text-4xl md:text-5xl font-black text-white hero-text uppercase mb-6">
-              TREK <span className="text-[#38BDF8]">CATEGORIES</span>
-            </h2>
-          </motion.div>
+      {/* Seasons */}
+      <section className="px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader lines={['Pick your season,', 'then your trail']}>
+            <p>Winter brings snow summits, summer opens the high meadows. Not sure? Start with a first-timer trek.</p>
+          </SectionHeader>
+          <SeasonPanels />
+        </div>
+      </section>
 
-          {/* Mobile: horizontal swipe */}
-          <HorizontalScrollSection>
-            {categories.slice(0, 8).map((category, index) => {
-              const icons = {
-                'Footprints': Mountain,
-                'Snowflake': Snowflake,
-                'Sun': Sun,
-                'Calendar': Calendar,
-                'Mountain': Mountain,
-                'TrendingUp': TrendingUp,
-                'Flag': MapPin,
-                'Users': Users
-              };
-              const IconComponent = icons[category.icon] || Mountain;
+      {/* Safety */}
+      <section className="px-4 py-16 sm:px-6 sm:py-28 lg:px-8">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-20">
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <RevealHeading
+              lines={['How we keep you', 'safe up there']}
+              className="font-display text-4xl font-medium leading-[1.02] tracking-tight text-white sm:text-5xl lg:text-6xl"
+            />
+            <FadeIn delay={0.15} className="tv-cinematic relative mt-10 hidden aspect-[4/5] overflow-hidden rounded-[28px] lg:block">
+              <img src={galleryImages[1].url} alt={galleryImages[1].description} className="h-full w-full object-cover" />
+            </FadeIn>
+          </div>
 
-              return (
-                <motion.div
-                  key={category.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.05 }}
-                  onClick={() => navigate(`/categories/${category.id}`)}
-                  className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center cursor-pointer h-full tv-card-glow hover:-translate-y-1.5"
-                >
-                  <div className="w-12 h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <IconComponent className="h-6 w-6 text-[#38BDF8]" />
+          <div>
+            <ul className="divide-y divide-white/10 border-y border-white/10">
+              {SAFETY.map(({ icon: Icon, title, desc }, i) => (
+                <FadeIn as="li" key={title} delay={i * 0.05} className="flex gap-5 py-7 sm:py-9">
+                  <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-white/10 text-[#F2A65A]">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h3 className="font-display text-xl font-medium text-white sm:text-2xl">{title}</h3>
+                    <p className="mt-2 max-w-md leading-relaxed text-[#94A3B8]">{desc}</p>
                   </div>
-                  <h3 className="text-white font-bold mb-2 text-base">{category.name}</h3>
-                  <p className="text-[#94A3B8] text-sm">{category.count} treks</p>
-                </motion.div>
-              );
-            })}
-          </HorizontalScrollSection>
-
-          {/* Desktop: normal grid */}
-          <div className="hidden md:grid md:grid-cols-2 md:grid-cols-4 gap-6">
-            {categories.slice(0, 8).map((category, index) => {
-              const icons = {
-                'Footprints': Mountain,
-                'Snowflake': Snowflake,
-                'Sun': Sun,
-                'Calendar': Calendar,
-                'Mountain': Mountain,
-                'TrendingUp': TrendingUp,
-                'Flag': MapPin,
-                'Users': Users
-              };
-              const IconComponent = icons[category.icon] || Mountain;
-
-              return (
-                <motion.div
-                  key={category.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.05 }}
-                  onClick={() => navigate(`/categories/${category.id}`)}
-                  className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center cursor-pointer tv-card-glow hover:-translate-y-1.5"
-                >
-                  <div className="w-12 h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <IconComponent className="h-6 w-6 text-[#38BDF8]" />
-                  </div>
-                  <h3 className="text-white font-bold mb-2">{category.name}</h3>
-                  <p className="text-[#94A3B8] text-sm">{category.count} treks</p>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Why Choose Us */}
-      <section className="py-24 bg-[#071827]/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">The TrailVista Difference</p>
-            <h2 className="text-4xl md:text-5xl font-black text-white hero-text uppercase mb-6">
-              WHY <span className="text-[#38BDF8]">CHOOSE US</span>
-            </h2>
-          </motion.div>
-
-          {/* Mobile: horizontal swipe */}
-          <HorizontalScrollSection>
-            {[
-              { icon: Award, title: 'Certified Trek Leaders', desc: 'Experienced guides with mountaineering certifications and first-aid training' },
-              { icon: DollarSign, title: 'Transparent Pricing', desc: 'No hidden costs. All-inclusive pricing with detailed breakdowns' },
-              { icon: Shield, title: 'Safety-First Protocol', desc: 'Comprehensive safety measures including oxygen support and emergency evacuation' },
-              { icon: Calendar, title: 'Fixed Departures', desc: 'Regular departure dates with guaranteed trips for hassle-free planning' },
-              { icon: MapPin, title: 'Local Expertise', desc: 'Deep knowledge of terrain, weather, and local culture for authentic experiences' },
-              { icon: Users, title: 'Custom Group Trips', desc: 'Tailored itineraries for corporate teams, families, and private groups' }
-            ].map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-[#071827] border border-white/10 rounded-2xl p-6 h-full tv-card-glow hover:-translate-y-1.5"
-              >
-                <div className="w-14 h-14 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mb-4">
-                  <item.icon className="h-7 w-7 text-[#38BDF8]" />
-                </div>
-                <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
-                <p className="text-[#94A3B8] text-sm leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </HorizontalScrollSection>
-
-          {/* Desktop: normal grid */}
-          <div className="hidden md:grid md:grid-cols-3 gap-8">
-            {[
-              { icon: Award, title: 'Certified Trek Leaders', desc: 'Experienced guides with mountaineering certifications and first-aid training' },
-              { icon: DollarSign, title: 'Transparent Pricing', desc: 'No hidden costs. All-inclusive pricing with detailed breakdowns' },
-              { icon: Shield, title: 'Safety-First Protocol', desc: 'Comprehensive safety measures including oxygen support and emergency evacuation' },
-              { icon: Calendar, title: 'Fixed Departures', desc: 'Regular departure dates with guaranteed trips for hassle-free planning' },
-              { icon: MapPin, title: 'Local Expertise', desc: 'Deep knowledge of terrain, weather, and local culture for authentic experiences' },
-              { icon: Users, title: 'Custom Group Trips', desc: 'Tailored itineraries for corporate teams, families, and private groups' }
-            ].map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-[#071827] border border-white/10 rounded-2xl p-6 tv-card-glow hover:-translate-y-1.5"
-              >
-                <div className="w-14 h-14 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mb-4">
-                  <item.icon className="h-7 w-7 text-[#38BDF8]" />
-                </div>
-                <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
-                <p className="text-[#94A3B8] text-sm leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Safety Section */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">Your Safety, Our Priority</p>
-            <h2 className="text-4xl md:text-5xl font-black text-white hero-text uppercase mb-6">
-              SAFETY-<span className="text-[#38BDF8]">FIRST</span> APPROACH
-            </h2>
-          </motion.div>
-
-          {/* Mobile: horizontal swipe */}
-          <HorizontalScrollSection>
-            {[
-              { label: 'Oxygen Support', icon: Heart },
-              { label: 'First-Aid Kits', icon: Shield },
-              { label: 'Weather Monitoring', icon: Thermometer },
-              { label: 'Emergency Evacuation', icon: Award },
-              { label: 'Certified Guides', icon: Users },
-              { label: 'Small Group Control', icon: TrendingUp }
-            ].map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-                className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center h-full tv-card-glow hover:-translate-y-1.5"
-              >
-                <div className="w-12 h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <item.icon className="h-6 w-6 text-[#38BDF8]" />
-                </div>
-                <p className="text-white text-sm font-semibold">{item.label}</p>
-              </motion.div>
-            ))}
-          </HorizontalScrollSection>
-
-          {/* Desktop: normal grid */}
-          <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {[
-              { label: 'Oxygen Support', icon: Heart },
-              { label: 'First-Aid Kits', icon: Shield },
-              { label: 'Weather Monitoring', icon: Thermometer },
-              { label: 'Emergency Evacuation', icon: Award },
-              { label: 'Certified Guides', icon: Users },
-              { label: 'Small Group Control', icon: TrendingUp }
-            ].map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-                className="bg-[#071827] border border-white/10 rounded-2xl p-6 text-center tv-card-glow hover:-translate-y-1.5"
-              >
-                <div className="w-12 h-12 bg-[#38BDF8]/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <item.icon className="h-6 w-6 text-[#38BDF8]" />
-                </div>
-                <p className="text-white text-sm font-semibold">{item.label}</p>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="text-center mt-8">
-            <button
-              onClick={() => navigate('/safety')}
-              className="text-[#38BDF8] hover:text-[#0ea5e9] font-semibold transition-colors"
+                </FadeIn>
+              ))}
+            </ul>
+            <Link
+              to="/safety"
+              className="mt-8 inline-flex items-center gap-1.5 font-semibold text-white hover:text-[#38BDF8]"
               data-testid="learn-more-safety-button"
             >
-              Learn More About Our Safety Protocols →
-            </button>
+              Read our full safety protocol <ArrowUpRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Gallery Marquee */}
-      <GalleryMarquee images={galleryImages} />
-
-      {/* Reviews Marquee */}
-      <ReviewMarquee reviews={reviews} />
-
-      {/* Blog Preview */}
+      {/* Filmstrip */}
       <section className="py-16 sm:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-10 sm:mb-12"
-          >
-            <p className="text-[#38BDF8] text-sm uppercase tracking-[0.3em] mb-4 font-bold">Knowledge Hub</p>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white hero-text uppercase mb-6">
-              TREK <span className="text-[#38BDF8]">GUIDES</span>
-            </h2>
-          </motion.div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionHeader lines={['From the trail']}>
+            <p>Photographs from recent departures.</p>
+            <Link to="/gallery" className="mt-4 inline-flex items-center gap-1.5 font-semibold text-white hover:text-[#38BDF8]">
+              Open the gallery <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </SectionHeader>
+        </div>
+        <Filmstrip images={galleryImages} />
+      </section>
 
-          {/* Mobile: horizontal swipe */}
-          <HorizontalScrollSection>
-            {blogPosts.map((post) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                onClick={() => navigate('/blog')}
-                className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden cursor-pointer h-full tv-card-glow hover:-translate-y-1.5"
-              >
-                <div className="h-48 overflow-hidden">
-                  <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-                </div>
-                <div className="p-5">
-                  <span className="text-[#38BDF8] text-xs font-bold uppercase tracking-wider">{post.category}</span>
-                  <h3 className="text-white font-bold text-base mt-2 mb-2">{post.title}</h3>
-                  <p className="text-[#94A3B8] text-sm mb-3 line-clamp-2">{post.excerpt}</p>
-                  <p className="text-[#94A3B8] text-xs">{new Date(post.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                </div>
-              </motion.div>
-            ))}
-          </HorizontalScrollSection>
-
-          {/* Desktop: normal grid */}
-          <div className="hidden md:grid md:grid-cols-3 gap-8">
-            {blogPosts.map((post) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                onClick={() => navigate('/blog')}
-                className="bg-[#071827] border border-white/10 rounded-2xl overflow-hidden cursor-pointer tv-card-glow hover:-translate-y-1.5"
-              >
-                <div className="h-48 overflow-hidden">
-                  <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-                </div>
-                <div className="p-6">
-                  <span className="text-[#38BDF8] text-xs font-bold uppercase tracking-wider">{post.category}</span>
-                  <h3 className="text-white font-bold text-lg mt-2 mb-3">{post.title}</h3>
-                  <p className="text-[#94A3B8] text-sm mb-4">{post.excerpt}</p>
-                  <p className="text-[#94A3B8] text-xs">{new Date(post.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="text-center mt-10 sm:mt-12">
-            <button
-              onClick={() => navigate('/blog')}
-              className="border border-white/30 hover:border-[#38BDF8] text-white px-8 py-3 rounded-full font-semibold transition-all active:scale-95"
-              data-testid="view-all-guides-button"
-            >
-              View All Guides
-            </button>
-          </div>
+      {/* Reviews */}
+      <section className="px-4 py-16 sm:px-6 sm:py-28 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader lines={['In their words']}>
+            <p>Rated 4.9 by trekkers who came back down.</p>
+            <Link to="/reviews" className="mt-4 inline-flex items-center gap-1.5 font-semibold text-white hover:text-[#38BDF8]">
+              Read all reviews <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </SectionHeader>
+          <ReviewSpotlight reviews={reviews} />
         </div>
       </section>
 
-      {/* Affiliations + Corporate Partners */}
+      {/* Guides (only when there are posts) */}
+      {blogPosts.length > 0 && (
+        <section className="px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <SectionHeader lines={['Trek guides']}>
+              <Link to="/blog" className="inline-flex items-center gap-1.5 font-semibold text-white hover:text-[#38BDF8]" data-testid="view-all-guides-button">
+                View all guides <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </SectionHeader>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+              {blogPosts.slice(0, 3).map((post) => (
+                <Link key={post.id} to={`/blog/${post.id}`} className="group block">
+                  <div className="aspect-[4/3] overflow-hidden rounded-3xl">
+                    <img src={post.image} alt={post.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  </div>
+                  <p className="mt-4 text-sm text-[#94A3B8]">{post.category}</p>
+                  <h3 className="mt-1 font-display text-xl font-medium text-white group-hover:text-[#38BDF8]">{post.title}</h3>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       <AffiliationsStrip />
 
       {/* Final CTA */}
-      <section className="tv-cinematic relative py-32 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img 
+      <section className="tv-cinematic tv-grain relative overflow-hidden px-4 py-32 sm:py-44">
+        <div className="absolute inset-0">
+          <img
             src="https://images.unsplash.com/photo-1777461788029-54db5f3971c2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwzfHxtb3VudGFpbiUyMHN1bW1pdCUyMHZpZXclMjBsYW5kc2NhcGV8ZW58MHx8fHwxNzc5MzkzMzc0fDA&ixlib=rb-4.1.0&q=85"
-            alt="Final CTA Background"
-            className="w-full h-full object-cover"
+            alt=""
+            className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/80 to-[#020617]/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/60 to-[#020617]/70" />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white hero-text uppercase mb-6">
-              READY TO WALK <span className="text-[#38BDF8]">ABOVE THE CLOUDS?</span>
-            </h2>
-            <p className="text-[#94A3B8] text-lg mb-8 max-w-2xl mx-auto">
-              Start your Himalayan adventure with India's most trusted expedition platform
+        <div className="relative z-10 mx-auto max-w-4xl text-center">
+          <RevealHeading
+            lines={['Ready to walk', 'above the clouds?']}
+            className="font-display text-5xl font-medium leading-[1] tracking-tight text-white sm:text-6xl lg:text-7xl"
+          />
+          <FadeIn delay={0.2}>
+            <p className="mx-auto mt-6 max-w-xl text-lg text-white/75">
+              Pick a departure, pay securely with Razorpay, and get your confirmation by email the same minute.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-              <button
-                onClick={() => navigate('/treks')}
-                className="bg-[#F97316] hover:bg-[#ea580c] text-white px-8 py-4 rounded-full text-base font-bold transition-all active:scale-95 shadow-lg tv-btn-cta"
-                data-testid="final-cta-plan-trek"
-              >
-                Plan Your Trek
+            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <button onClick={() => navigate('/treks')} className="tv-btn-primary h-14 px-8 text-base" data-testid="final-cta-plan-trek">
+                Find your trek
               </button>
-              <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
-                <button className="border border-white/30 hover:border-[#38BDF8] text-white px-8 py-4 rounded-full text-base font-bold transition-all active:scale-95 backdrop-blur-sm" data-testid="final-cta-whatsapp">
-                  WhatsApp Us
-                </button>
+              <a
+                href="https://wa.me/919876543210"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="tv-btn-ghost h-14 px-8 text-base"
+                data-testid="final-cta-whatsapp"
+              >
+                Ask us on WhatsApp
               </a>
             </div>
-          </motion.div>
+          </FadeIn>
         </div>
       </section>
     </div>

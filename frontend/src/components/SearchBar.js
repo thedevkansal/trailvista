@@ -27,7 +27,7 @@ const SearchBar = ({ onSearch }) => {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="bg-[#071827] border border-white/10 rounded-2xl p-6 shadow-xl"
+      className="bg-[#071827] border border-white/10 rounded-3xl p-6 sm:p-7"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <div>
@@ -123,7 +123,7 @@ const SearchBar = ({ onSearch }) => {
         <div className="flex items-end">
           <button
             onClick={handleSearch}
-            className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-2 rounded-lg font-semibold transition-all active:scale-95 flex items-center justify-center space-x-2"
+            className="tv-btn-primary h-10 w-full px-6 text-sm !rounded-lg"
             data-testid="search-find-treks-button"
           >
             <Search className="h-4 w-4" />
