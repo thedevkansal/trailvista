@@ -9,6 +9,7 @@ import EnquiryModal from '../components/EnquiryModal';
 import { treks, reviews as allReviews } from '../data/treksData';
 import { useAuth } from '../context/AuthContext';
 import { loadRazorpay } from '../lib/loadRazorpay';
+import { upcomingDepartures } from '../lib/departures';
 import {
   createPaymentOrder,
   verifyPayment,
@@ -36,13 +37,8 @@ const TrekDetail = () => {
   // Initialize selected date and scroll to top
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (trek) {
-      if (trek.availableDates && trek.availableDates.length > 0) {
-        setSelectedDate(trek.availableDates[0]);
-      } else if (trek.nextBatch) {
-        setSelectedDate(trek.nextBatch);
-      }
-    }
+    // Only future departures can be booked; default to the earliest one.
+    setSelectedDate(trek ? upcomingDepartures(trek)[0] || '' : '');
   }, [id, trek]);
 
   if (!trek) {
@@ -59,6 +55,7 @@ const TrekDetail = () => {
   }
 
   const trekReviews = allReviews.filter(r => r.trek === trek.name);
+  const departures = upcomingDepartures(trek);
 
   // Default Fallbacks
   const defaultItinerary = [
@@ -105,6 +102,10 @@ const TrekDetail = () => {
   const specialHighlights = trek.whatMakesSpecial || [];
 
   const handleBookNow = async () => {
+    if (!selectedDate) {
+      setPaymentError('There are no upcoming departures for this trek yet. Send us an enquiry instead.');
+      return;
+    }
     setPaymentError(null);
     setBookingSuccess(null);
     setShowBookingDialog(false);
@@ -356,7 +357,7 @@ const TrekDetail = () => {
               <p className="text-[#94A3B8] text-sm mb-6">Select from our upcoming fixed departures batch list. Guides, permits, and slots are pre-arranged.</p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(trek.availableDates || [trek.nextBatch]).map((dateStr) => {
+                {departures.map((dateStr) => {
                   const isSelected = selectedDate === dateStr;
                   return (
                     <div
@@ -398,6 +399,11 @@ const TrekDetail = () => {
                   );
                 })}
               </div>
+              {departures.length === 0 && (
+                <p className="text-[#94A3B8] text-sm" data-testid="no-upcoming-departures">
+                  No upcoming departures are scheduled yet. Send us an enquiry and we'll tell you when the next batch opens.
+                </p>
+              )}
             </section>
 
             {/* Inclusions & Exclusions */}
@@ -551,11 +557,11 @@ const TrekDetail = () => {
               <div className="space-y-4">
                 <button 
                   onClick={handleBookNow}
-                  disabled={paymentLoading || !!bookingSuccess}
+                  disabled={paymentLoading || !!bookingSuccess || !selectedDate}
                   className="w-full bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-3.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 tv-btn-cta shadow-lg shadow-[#F97316]/10 cursor-pointer"
                   data-testid="trek-detail-book-now"
                 >
-                  {paymentLoading ? 'Processing...' : bookingSuccess ? 'Booked' : 'Book Now'}
+                  {paymentLoading ? 'Processing...' : bookingSuccess ? 'Booked' : selectedDate ? 'Book Now' : 'No upcoming dates'}
                 </button>
                 
                 <button 
@@ -687,10 +693,10 @@ const TrekDetail = () => {
           </button>
           <button
             onClick={handleBookNow}
-            disabled={paymentLoading || !!bookingSuccess}
+            disabled={paymentLoading || !!bookingSuccess || !selectedDate}
             className="bg-[#F97316] hover:bg-[#ea580c] text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 shadow-lg cursor-pointer"
           >
-            {paymentLoading ? 'Processing...' : bookingSuccess ? 'Booked' : 'Book Now'}
+            {paymentLoading ? 'Processing...' : bookingSuccess ? 'Booked' : selectedDate ? 'Book Now' : 'No upcoming dates'}
           </button>
         </div>
       </div>

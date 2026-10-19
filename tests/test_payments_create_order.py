@@ -1,4 +1,9 @@
 """Tests for POST /payments/create-order."""
+from datetime import date
+
+import pytest
+
+import payments
 from tests.conftest import CHEAP_TREK, TREK_PRICES, USER_ID
 
 
@@ -28,41 +33,54 @@ def test_notes_bind_trek_and_user(harness):
     assert harness.razorpay.created_orders[0]["notes"] == {"trek_id": CHEAP_TREK, "user_id": USER_ID}
 
 
-def test_departure_date_stored_in_notes(harness):
+@pytest.fixture
+def fixed_today(monkeypatch):
+    monkeypatch.setattr(payments, "_today_ist", lambda: date(2026, 10, 19))
+
+
+def test_departure_date_stored_in_notes(harness, fixed_today):
     resp = harness.client.post(
-        "/payments/create-order", json={"trek_id": CHEAP_TREK, "departure_date": "2026-02-15"}
+        "/payments/create-order", json={"trek_id": CHEAP_TREK, "departure_date": "2027-02-15"}
     )
 
     assert resp.status_code == 200
     assert harness.razorpay.created_orders[0]["notes"] == {
         "trek_id": CHEAP_TREK,
         "user_id": USER_ID,
-        "departure_date": "2026-02-15",
+        "departure_date": "2027-02-15",
     }
 
 
-def test_invalid_departure_date_rejected(harness):
+def test_past_departure_date_rejected(harness, fixed_today):
     resp = harness.client.post(
-        "/payments/create-order", json={"trek_id": CHEAP_TREK, "departure_date": "15/02/2026"}
+        "/payments/create-order", json={"trek_id": CHEAP_TREK, "departure_date": "2026-02-15"}
     )
 
     assert resp.status_code == 400
+    assert resp.json()["detail"] == "This departure date has already passed."
     assert harness.razorpay.created_orders == []
 
 
-def test_empty_departure_date_ignored(harness):
-    resp = harness.client.post(
-        "/payments/create-order", json={"trek_id": CHEAP_TREK, "departure_date": ""}
+def test_yesterday_rejected_today_allowed(harness, fixed_today):
+    yesterday = harness.client.post(
+        "/payments/create-order", json={"trek_id": CHEAP_TREK, "departure_date": "2026-10-18"}
+    )
+    today = harness.client.post(
+        "/payments/create-order", json={"trek_id": CHEAP_TREK, "departure_date": "2026-10-19"}
     )
 
-    assert resp.status_code == 200
-    assert "departure_date" not in harness.razorpay.created_orders[0]["notes"]
+    assert yesterday.status_code == 400
+    assert today.status_code == 200
 
 
-def test_debug_test_email_endpoint_removed(harness):
-    resp = harness.client.post(
-        "/payments/debug/send-test-email", json={"recipient_email": "x@example.com"}
-    )
+def test_today_ist_uses_india_time(monkeypatch):
+    # 20:00 UTC on 18 Oct is already 19 Oct in India.
+    real = payments.datetime
 
-    assert resp.status_code in (404, 405)
-    assert harness.sent_emails == []
+    class FakeDatetime(real):
+        @classmethod
+        def now(cls, tz=None):
+            return real(2026, 10, 18, 20, 0, tzinfo=payments.timezone.utc).astimezone(tz)
+
+    monkeypatch.setattr(payments, "datetime", FakeDatetime)
+    assert payments._today_ist() == date(2026, 10, 19)

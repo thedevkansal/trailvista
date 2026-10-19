@@ -135,9 +135,13 @@ export function openRazorpayCheckout({
       contact: user?.profile?.phone || user?.phone || '',
     },
     handler: onVerified,
+    // No in-modal "retry with another method" screen: a failed attempt closes
+    // checkout and the page shows the error, so the user can start again cleanly.
+    retry: { enabled: false },
     modal: {
       ondismiss: () => {
-        onError(new Error('Payment cancelled.'));
+        // Closing after a failure is not a cancellation; keep the failure message.
+        if (!failed) onError(new Error('Payment cancelled.'));
       },
     },
     theme: {
@@ -145,13 +149,21 @@ export function openRazorpayCheckout({
     },
   };
 
+  let failed = false;
+  const isTestMode = keyId.startsWith('rzp_test_');
   const rzp = new window.Razorpay(options);
   rzp.on('payment.failed', (response) => {
-    const msg =
+    failed = true;
+    let msg =
       response?.error?.description ||
       response?.error?.reason ||
       'Payment failed. Please try again.';
+    if (isTestMode) {
+      // Razorpay's documented test details; real UPI apps/QR codes can't pay in test mode.
+      msg += ' (Test mode: use card 4100 2800 0000 1007 with any future expiry, any CVV and a 4-10 digit OTP, or UPI ID success@razorpay.)';
+    }
     onError(new Error(msg));
+    rzp.close();
   });
   rzp.open();
 }
