@@ -237,16 +237,101 @@ input:focus, select:focus, textarea:focus {
     outline: none !important;
 }
 
-/* Premium micro-interactions for buttons */
+/* Buttons: press feedback only. Each button styles its own hover. */
 button, .btn {
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transition: color 0.25s ease, background-color 0.25s ease, border-color 0.25s ease,
+        box-shadow 0.3s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
 }
-button:hover, .btn:hover {
-    filter: brightness(1.05);
-    box-shadow: 0 10px 25px -10px rgba(56, 189, 248, 0.3);
+button:active:not(:disabled), .btn:active {
+    transform: scale(0.98);
 }
-button:active, .btn:active {
-    transform: scale(0.97) !important;
+
+/* =========================================================
+   TRAILVISTA SYSTEM
+   Night sky base, glacier blue for wayfinding, alpenglow
+   (the warm light on peaks at first sun) for the one action
+   that matters on each screen.
+   ========================================================= */
+:root {
+    --tv-glacier: #38BDF8;
+    --tv-alpenglow: #F2A65A;
+    --tv-alpenglow-deep: #E08A3C;
+    --tv-ink: #1A1208;
+    --tv-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tv-num { font-variant-numeric: tabular-nums; }
+
+/* Primary action: alpenglow fill, dark ink text for contrast */
+.tv-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--tv-alpenglow);
+    color: var(--tv-ink);
+    font-weight: 700;
+    border-radius: 9999px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 12px 30px -14px rgba(242, 166, 90, 0.7);
+}
+.tv-btn-primary:hover:not(:disabled) {
+    background-color: #F5B470;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 16px 36px -14px rgba(242, 166, 90, 0.85);
+}
+.tv-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Secondary action: quiet outline that reads on photos and on night */
+.tv-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(8px);
+}
+.tv-btn-ghost:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.08);
+}
+.light-mode .tv-btn-ghost {
+    border-color: rgba(12, 74, 110, 0.25);
+    color: #0C4A6E;
+    background-color: rgba(255, 255, 255, 0.5);
+}
+.light-mode .tv-cinematic .tv-btn-ghost,
+.light-mode .tv-hero-zone .tv-btn-ghost {
+    border-color: rgba(255, 255, 255, 0.22);
+    color: #FFFFFF;
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Visible keyboard focus everywhere */
+a:focus-visible, button:focus-visible, [role="tab"]:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--tv-glacier);
+    outline-offset: 3px;
+    border-radius: 9999px;
+}
+
+/* Slow drift on hero photography */
+@keyframes tv-drift {
+    from { transform: scale(1.08) translate3d(0, 0, 0); }
+    to { transform: scale(1.0) translate3d(-1.5%, -1%, 0); }
+}
+.tv-drift { animation: tv-drift 18s var(--tv-ease-out) both; }
+
+/* Film grain used on photo panels */
+.tv-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
 /* Specific glowing action buttons (orange CTA) */
@@ -284,3 +369,7 @@ button:active, .btn:active {
         transform: none !important;
     }
 }
+
+/* Partner logos as single-colour marks on night; dark marks on light mode */
+.tv-logo { filter: brightness(0) invert(1); }
+.light-mode .tv-logo { filter: brightness(0); }

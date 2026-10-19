@@ -7,12 +7,24 @@ module.exports = {
   ],
   theme: {
   	extend: {
+  		spacing: {
+  			'4.5': '1.125rem'
+  		},
+  		fontFamily: {
+  			display: ['"Clash Display"', 'sans-serif'],
+  			sans: ['Manrope', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif']
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+  			alpenglow: {
+  				DEFAULT: '#F2A65A',
+  				deep: '#E08A3C',
+  				ink: '#1A1208'
+  			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
