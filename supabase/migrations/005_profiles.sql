@@ -23,6 +23,11 @@ ALTER TABLE public.profiles ALTER COLUMN travel_style DROP NOT NULL;
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
+-- Policies from the original dashboard setup (granted to every role, incl. INSERT).
+DROP POLICY IF EXISTS "Users can insert their own profile." ON public.profiles;
+DROP POLICY IF EXISTS "Users can select their own profile." ON public.profiles;
+DROP POLICY IF EXISTS "Users can update their own profile." ON public.profiles;
+
 DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 CREATE POLICY "Users can view own profile"
   ON public.profiles FOR SELECT
@@ -39,7 +44,7 @@ CREATE POLICY "Users can update own profile"
 -- Rows are only inserted by the trigger below, never by clients.
 DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
 
-REVOKE ALL ON public.profiles FROM anon;
+REVOKE ALL ON public.profiles FROM anon, authenticated;
 GRANT SELECT, UPDATE (full_name, phone, city, age, travel_style, updated_at)
   ON public.profiles TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO service_role;
@@ -66,6 +71,9 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+-- Only the trigger should run this; don't expose it as an RPC.
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
